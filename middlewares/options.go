@@ -18,7 +18,6 @@ func HandleOptions() echo.MiddlewareFunc {
 			if c.Request().Method == "OPTIONS" {
 				c.Response().Header().Set("Allow", "OPTIONS, GET, POST")
 				c.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type")
-				return next(c)
 			}
 
 			return next(c)
