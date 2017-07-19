@@ -4,14 +4,12 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"gopkg.in/jmcvetta/neoism.v1"
 
 	"github.com/ArchGIS/new-gis/assert"
 	middle "github.com/ArchGIS/new-gis/middlewares"
 	"github.com/ArchGIS/new-gis/routes"
+	"github.com/ArchGIS/new-gis/routes/sites"
 )
-
-var DB *neoism.Database
 
 func init() {
 	err := godotenv.Load()
@@ -23,13 +21,15 @@ func main() {
 
 	e.Debug = true
 
-	e.Use(middle.HandleOptions())
 	e.Use(middle.AddOrigin())
+	e.Use(middle.HandleOptions())
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	e.POST("/login", loginHandler)
-	e.GET("/monuments", routes.Monuments)
+
+	e.GET("/counts", routes.Count)
+	e.GET("/monuments", sites.Plural)
 
 	e.Logger.Fatal(e.Start(":8181"))
 }
