@@ -33,7 +33,7 @@ func loginHandler(c echo.Context) error {
 		claims := token.Claims.(jwt.MapClaims)
 		claims["name"] = "Admin"
 		claims["admin"] = true
-		duration := time.Now().Add(time.Hour * 24).Unix()
+		duration := time.Now().Add(time.Hour * 24 * 90).Unix()
 		claims["exp"] = duration
 
 		// Generate encoded token
