@@ -38,7 +38,7 @@ func main() {
 	apiRouter.Use(middleware.JWT([]byte(os.Getenv(authSecret))))
 
 	apiRouter.GET("/counts", routes.Count)
-	apiRouter.GET("/monuments", sites.Plural)
+	apiRouter.GET("/sites", sites.Plural)
 
 	e.Logger.Fatal(e.Start(":8181"))
 }
