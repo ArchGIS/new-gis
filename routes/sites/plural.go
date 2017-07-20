@@ -55,7 +55,6 @@ func querySites(c echo.Context) ([]monument, error) {
 	var res []monument
 
 	name := c.QueryParam("site_name")
-	println(name)
 
 	offset, err := strconv.Atoi(c.QueryParam("offset"))
 	if err != nil {
