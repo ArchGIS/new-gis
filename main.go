@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -26,10 +28,17 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	e.POST("/login", loginHandler)
+	e.Match(
+		[]string{"POST", "GET"},
+		"/login",
+		loginHandler,
+	)
 
-	e.GET("/counts", routes.Count)
-	e.GET("/monuments", sites.Plural)
+	apiRouter := e.Group("/api")
+	apiRouter.Use(middleware.JWT([]byte(os.Getenv(authSecret))))
+
+	apiRouter.GET("/counts", routes.Count)
+	apiRouter.GET("/monuments", sites.Plural)
 
 	e.Logger.Fatal(e.Start(":8181"))
 }
