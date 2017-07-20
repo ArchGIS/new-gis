@@ -23,7 +23,7 @@ type (
 		Item item `json:"item"`
 	}
 
-	request_params struct {
+	requestParams struct {
 		Name   string `query:"site_name"`
 		Offset int    `query:"offset"`
 		Limit  int    `query:"limit"`
@@ -71,7 +71,7 @@ func querySites(c echo.Context) ([]site, error) {
 
 	var res []site
 
-	req := new(request_params)
+	req := new(requestParams)
 	if err = c.Bind(req); err != nil {
 		return nil, routes.NotAllowedQueryParams
 	}
