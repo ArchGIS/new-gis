@@ -52,7 +52,9 @@ func Count(c echo.Context) error {
 	result, err := queryCounts(c)
 
 	if err == nil {
-		return c.JSON(http.StatusOK, result)
+		return c.JSON(http.StatusOK, map[string][]count{
+			"counts": result,
+		})
 	}
 
 	return err
