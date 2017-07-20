@@ -3,36 +3,51 @@ package sites
 import (
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/ArchGIS/new-gis/assert"
+	"github.com/ArchGIS/new-gis/routes"
 	"github.com/jmcvetta/neoism"
 	"github.com/labstack/echo"
 )
 
-type monument struct {
-	// `json:` tags matches column names in query
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	ResName  string `json:"resName"`
-	Epoch    string `json:"epoch"`
-	SiteType string `json:"type"`
-}
+type (
+	item struct {
+		Name     string `json:"site_name"`
+		ResName  string `json:"research_name"`
+		Epoch    string `json:"epoch"`
+		SiteType string `json:"type"`
+	}
+
+	site struct {
+		ID   int  `json:"id"`
+		Item item `json:"item"`
+	}
+
+	request_params struct {
+		Name   string `query:"site_name"`
+		Offset int    `query:"offset"`
+		Limit  int    `query:"limit"`
+	}
+
+	response map[string][]site
+)
 
 const (
 	statement = `
 		MATCH (s:Monument)<--(k:Knowledge)
 		WHERE k.monument_name =~ {name}
-		with s, k
+		WITH s, k
 		MATCH (s)-[:has]->(st:MonumentType)
 		MATCH (s)-[:has]->(e:Epoch)
 		MATCH (r:Research)-[:has]->(k)
 		RETURN
-			s.id as id,
-			k.monument_name as name,
-			r.name as resName,
-			e.name as epoch,
-			st.name as type
+			s.id AS id,
+			{
+				site_name: k.monument_name,
+				research_name: r.name,
+				epoch: e.name,
+				type: st.name
+			} as item
 		SKIP {offset} LIMIT {limit}
 	`
 )
@@ -41,36 +56,32 @@ func Plural(c echo.Context) error {
 	result, err := querySites(c)
 
 	if err == nil {
-		return c.JSON(http.StatusOK, result)
+		return c.JSON(http.StatusOK, response{
+			"sites": result,
+		})
 	}
 
 	return err
 }
 
-func querySites(c echo.Context) ([]monument, error) {
+func querySites(c echo.Context) ([]site, error) {
 	neoHost := os.Getenv("Neo4jHost")
 	DB, err := neoism.Connect(neoHost)
 	assert.Nil(err)
 
-	var res []monument
+	var res []site
 
-	name := c.QueryParam("site_name")
-
-	offset, err := strconv.Atoi(c.QueryParam("offset"))
-	if err != nil {
-		offset = 0
-	}
-	limit, err := strconv.Atoi(c.QueryParam("limit"))
-	if err != nil {
-		limit = 10
+	req := new(request_params)
+	if err = c.Bind(req); err != nil {
+		return nil, routes.NotAllowedQueryParams
 	}
 
 	cq := neoism.CypherQuery{
 		Statement: statement,
 		Parameters: neoism.Props{
-			"name":   "(?ui).*" + name + ".*$",
-			"offset": offset,
-			"limit":  limit,
+			"name":   "(?ui).*" + req.Name + ".*$",
+			"offset": req.Offset,
+			"limit":  req.Limit,
 		},
 		Result: &res,
 	}
@@ -82,5 +93,5 @@ func querySites(c echo.Context) ([]monument, error) {
 		return res, nil
 	}
 
-	return nil, echo.ErrNotFound
+	return []site{}, nil
 }
