@@ -1,7 +1,6 @@
 package sites
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -56,7 +55,6 @@ func querySites(c echo.Context) ([]monument, error) {
 	var res []monument
 
 	name := c.QueryParam("site_name")
-	name = fmt.Sprintf("%x", name)
 	println(name)
 
 	offset, err := strconv.Atoi(c.QueryParam("offset"))
