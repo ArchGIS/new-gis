@@ -67,6 +67,7 @@ const (
 	entity = "Monument"
 )
 
+// Plural gets info about archeological sites
 func Plural(c echo.Context) error {
 	result, err := querySites(c)
 
@@ -124,7 +125,7 @@ func querySites(c echo.Context) ([]site, error) {
 		err = DB.Cypher(&coordsCQ)
 		assert.Nil(err)
 
-		for i, _ := range coords {
+		for i := range coords {
 			res[i].Coords = coords[i]
 		}
 
