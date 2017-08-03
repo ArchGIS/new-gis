@@ -35,6 +35,7 @@ type (
 	}
 
 	requestParams struct {
+		Lang   string `query:"lang"`
 		Name   string `query:"site_name"`
 		Epoch  int    `query:"epoch_id"`
 		Type   int    `query:"type_id"`
@@ -48,8 +49,8 @@ type (
 const (
 	statement = `
     MATCH (s:Monument)<--(k:Knowledge)
-    MATCH (s)-[:has]->(st:MonumentType)
-    MATCH (s)-[:has]->(e:Epoch)
+    MATCH (s)-[:has]->(st:MonumentType)-[:translation {lang: {language}}]->(trType:Translate)
+    MATCH (s)-[:has]->(e:Epoch)-[:translation {lang: {language}}]->(trEpoch:Translate)
     MATCH (r:Research)-[:has]->(k)
 		WHERE %s
 		WITH
@@ -57,8 +58,8 @@ const (
 			{
 				site_name: collect(k.monument_name),
 				research_name: collect(r.name),
-				epoch: e.name,
-				type: st.name
+				epoch: trEpoch.name,
+				type: trType.name
 			} as item
     RETURN id, item
     SKIP {offset} LIMIT {limit}
@@ -95,11 +96,12 @@ func querySites(c echo.Context) ([]site, error) {
 	cq := neoism.CypherQuery{
 		Statement: finalStatement(statement, siteFilterString(req)),
 		Parameters: neoism.Props{
-			"name":   "(?ui).*" + req.Name + ".*$",
-			"epoch":  req.Epoch,
-			"type":   req.Type,
-			"offset": req.Offset,
-			"limit":  req.Limit,
+			"language": req.Lang,
+			"name":     "(?ui).*" + req.Name + ".*$",
+			"epoch":    req.Epoch,
+			"type":     req.Type,
+			"offset":   req.Offset,
+			"limit":    req.Limit,
 		},
 		Result: &res,
 	}
@@ -117,9 +119,11 @@ func querySites(c echo.Context) ([]site, error) {
 
 		coordStatement := cypher.BuildCoordinates(ids, entity)
 		coordsCQ := neoism.CypherQuery{
-			Statement:  coordStatement,
-			Parameters: neoism.Props{},
-			Result:     &coords,
+			Statement: coordStatement,
+			Parameters: neoism.Props{
+				"language": req.Lang,
+			},
+			Result: &coords,
 		}
 
 		err = DB.Cypher(&coordsCQ)
