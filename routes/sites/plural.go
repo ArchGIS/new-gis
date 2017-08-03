@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ArchGIS/new-gis/assert"
+	cypher "github.com/ArchGIS/new-gis/cypherBuilder"
 	"github.com/ArchGIS/new-gis/routes"
 	"github.com/jmcvetta/neoism"
 	"github.com/labstack/echo"
@@ -14,15 +15,23 @@ import (
 
 type (
 	item struct {
-		Name     string `json:"site_name"`
-		ResName  string `json:"research_name"`
-		Epoch    string `json:"epoch"`
-		SiteType string `json:"type"`
+		Name     []string `json:"site_name"`
+		ResName  []string `json:"research_name"`
+		Epoch    string   `json:"epoch"`
+		SiteType string   `json:"type"`
 	}
 
 	site struct {
-		ID   int  `json:"id"`
-		Item item `json:"item"`
+		ID     int         `json:"id"`
+		Item   item        `json:"item"`
+		Coords coordinates `json:"coordinates"`
+	}
+
+	coordinates struct {
+		Date int     `json:"date"`
+		X    float64 `json:"x"`
+		Y    float64 `json:"y"`
+		Type string  `json:"type"`
 	}
 
 	requestParams struct {
@@ -38,21 +47,24 @@ type (
 
 const (
 	statement = `
-		MATCH (s:Monument)<--(k:Knowledge)
-		MATCH (s)-[:has]->(st:MonumentType)
-		MATCH (s)-[:has]->(e:Epoch)
-		MATCH (r:Research)-[:has]->(k)
+    MATCH (s:Monument)<--(k:Knowledge)
+    MATCH (s)-[:has]->(st:MonumentType)
+    MATCH (s)-[:has]->(e:Epoch)
+    MATCH (r:Research)-[:has]->(k)
 		WHERE %s
-		RETURN
-			s.id AS id,
+		WITH
+			s.id as id,
 			{
-				site_name: k.monument_name,
-				research_name: r.name,
+				site_name: collect(k.monument_name),
+				research_name: collect(r.name),
 				epoch: e.name,
 				type: st.name
 			} as item
-		SKIP {offset} LIMIT {limit}
+    RETURN id, item
+    SKIP {offset} LIMIT {limit}
 	`
+
+	entity = "Monument"
 )
 
 func Plural(c echo.Context) error {
@@ -95,6 +107,27 @@ func querySites(c echo.Context) ([]site, error) {
 	assert.Nil(err)
 
 	if len(res) > 0 {
+		ids := make([]int, len(res))
+		coords := make([]coordinates, len(res))
+
+		for i, v := range res {
+			ids[i] = v.ID
+		}
+
+		coordStatement := cypher.BuildCoordinates(ids, entity)
+		coordsCQ := neoism.CypherQuery{
+			Statement:  coordStatement,
+			Parameters: neoism.Props{},
+			Result:     &coords,
+		}
+
+		err = DB.Cypher(&coordsCQ)
+		assert.Nil(err)
+
+		for i, _ := range coords {
+			res[i].Coords = coords[i]
+		}
+
 		return res, nil
 	}
 
