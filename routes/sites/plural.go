@@ -72,13 +72,13 @@ const (
 func Plural(c echo.Context) error {
 	result, err := querySites(c)
 
-	if err == nil {
-		return c.JSON(http.StatusOK, response{
-			"sites": result,
-		})
+	if err != nil {
+		return err
 	}
 
-	return err
+	return c.JSON(http.StatusOK, response{
+		"sites": result,
+	})
 }
 
 func querySites(c echo.Context) ([]site, error) {
