@@ -10,21 +10,21 @@ import (
 )
 
 const (
-	epochsStatement = `
-		MATCH (n:Epoch)-[:translation {lang: {language}}]->(tr:Translate)
+	siteTypesStatement = `
+		MATCH (n:MonumentType)-[:translation {lang: {language}}]->(tr:Translate)
 		RETURN n.id as id, tr.name as name
 	`
 )
 
 type (
-	epoch struct {
+	siteType struct {
 		ID   int    `json:"id"`
 		Name string `json:"name"`
 	}
 )
 
 // Epochs return list of epochs
-func Epochs(c echo.Context) error {
+func SiteTypes(c echo.Context) error {
 	neoHost := os.Getenv("Neo4jHost")
 	DB, err := neoism.Connect(neoHost)
 	assert.Nil(err)
@@ -34,10 +34,10 @@ func Epochs(c echo.Context) error {
 		return err
 	}
 
-	var res []epoch
+	var res []siteType
 
 	cq := neoism.CypherQuery{
-		Statement: epochsStatement,
+		Statement: siteTypesStatement,
 		Parameters: neoism.Props{
 			"language": req.Lang,
 		},
@@ -49,7 +49,7 @@ func Epochs(c echo.Context) error {
 
 	if len(res) > 0 {
 		return c.JSON(http.StatusOK, echo.Map{
-			"epochs": res,
+			"siteTypes": res,
 		})
 	}
 

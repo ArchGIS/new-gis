@@ -44,6 +44,7 @@ func main() {
 	apiRouter.GET("/counts", routes.Count)
 	apiRouter.GET("/sites", sites.Plural)
 	apiRouter.GET("/epochs", routes.Epochs)
+	apiRouter.GET("/site_types", routes.SiteTypes)
 
 	e.Logger.Fatal(e.Start(":8181"))
 }
