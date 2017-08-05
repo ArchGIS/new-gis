@@ -22,7 +22,7 @@ type User struct {
 func loginHandler(c echo.Context) error {
 	user := new(User)
 	if err := c.Bind(user); err != nil {
-		return echo.ErrNotFound
+		return err
 	}
 
 	if isAuthentificated(user.Name, user.Password) {
