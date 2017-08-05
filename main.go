@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 
+	validator "gopkg.in/go-playground/validator.v9"
+
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -22,6 +24,8 @@ func main() {
 	e := echo.New()
 
 	e.Debug = true
+
+	e.Validator = &CustomValidator{validator: validator.New()}
 
 	e.Use(middle.AddOrigin())
 	e.Use(middle.HandleOptions())

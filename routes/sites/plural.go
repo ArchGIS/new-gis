@@ -37,8 +37,8 @@ type (
 	requestParams struct {
 		Lang   string `query:"lang"`
 		Name   string `query:"site_name"`
-		Epoch  int    `query:"epoch_id"`
-		Type   int    `query:"type_id"`
+		Epoch  int    `query:"epoch_id" validate:"min=0,max=8"`
+		Type   int    `query:"type_id" validate:"min=0,max=12"`
 		Offset int    `query:"offset"`
 		Limit  int    `query:"limit"`
 	}
@@ -91,6 +91,10 @@ func querySites(c echo.Context) ([]site, error) {
 	req := newRequestParams()
 	if err = c.Bind(req); err != nil {
 		return nil, routes.NotAllowedQueryParams
+	}
+
+	if err = c.Validate(req); err != nil {
+		return nil, err
 	}
 
 	cq := neoism.CypherQuery{
