@@ -161,6 +161,7 @@ func finalStatement(statement, filter string) string {
 
 func newRequestParams() *requestParams {
 	return &requestParams{
+		Lang:   "en",
 		Name:   "",
 		Epoch:  0,
 		Type:   0,
