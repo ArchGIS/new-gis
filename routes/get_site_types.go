@@ -2,9 +2,9 @@ package routes
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/ArchGIS/new-gis/assert"
+	"github.com/ArchGIS/new-gis/neo"
 	"github.com/jmcvetta/neoism"
 	"github.com/labstack/echo"
 )
@@ -25,11 +25,9 @@ type (
 
 // Epochs return list of epochs
 func SiteTypes(c echo.Context) error {
-	neoHost := os.Getenv("Neo4jHost")
-	DB, err := neoism.Connect(neoHost)
-	assert.Nil(err)
-
 	req := &request{Lang: "en"}
+	var err error
+
 	if err = c.Bind(req); err != nil {
 		return err
 	}
@@ -44,7 +42,7 @@ func SiteTypes(c echo.Context) error {
 		Result: &res,
 	}
 
-	err = DB.Cypher(&cq)
+	err = neo.DB.Cypher(&cq)
 	assert.Nil(err)
 
 	if len(res) > 0 {

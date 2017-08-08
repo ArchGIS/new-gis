@@ -3,11 +3,11 @@ package sites
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/ArchGIS/new-gis/assert"
 	cypher "github.com/ArchGIS/new-gis/cypherBuilder"
+	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
 	"github.com/jmcvetta/neoism"
 	"github.com/labstack/echo"
@@ -82,11 +82,8 @@ func Plural(c echo.Context) error {
 }
 
 func querySites(c echo.Context) ([]site, error) {
-	neoHost := os.Getenv("Neo4jHost")
-	DB, err := neoism.Connect(neoHost)
-	assert.Nil(err)
-
 	var res []site
+	var err error
 
 	req := newRequestParams()
 	if err = c.Bind(req); err != nil {
@@ -110,7 +107,7 @@ func querySites(c echo.Context) ([]site, error) {
 		Result: &res,
 	}
 
-	err = DB.Cypher(&cq)
+	err = neo.DB.Cypher(&cq)
 	assert.Nil(err)
 
 	if len(res) > 0 {
@@ -130,7 +127,7 @@ func querySites(c echo.Context) ([]site, error) {
 			Result: &coords,
 		}
 
-		err = DB.Cypher(&coordsCQ)
+		err = neo.DB.Cypher(&coordsCQ)
 		assert.Nil(err)
 
 		for i := range coords {
