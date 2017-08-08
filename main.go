@@ -11,6 +11,7 @@ import (
 
 	"github.com/ArchGIS/new-gis/assert"
 	middle "github.com/ArchGIS/new-gis/middlewares"
+	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
 	"github.com/ArchGIS/new-gis/routes/sites"
 )
@@ -21,6 +22,8 @@ func init() {
 }
 
 func main() {
+	err := neo.InitDB()
+	assert.Nil(err)
 	e := echo.New()
 
 	e.Debug = true

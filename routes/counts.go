@@ -2,9 +2,9 @@ package routes
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/ArchGIS/new-gis/assert"
+	"github.com/ArchGIS/new-gis/neo"
 	"github.com/jmcvetta/neoism"
 	"github.com/labstack/echo"
 )
@@ -61,10 +61,7 @@ func Count(c echo.Context) error {
 }
 
 func queryCounts(c echo.Context) ([]count, error) {
-	neoHost := os.Getenv("Neo4jHost")
-	DB, err := neoism.Connect(neoHost)
-	assert.Nil(err)
-
+	var err error
 	var res []count
 
 	cq := neoism.CypherQuery{
@@ -73,7 +70,7 @@ func queryCounts(c echo.Context) ([]count, error) {
 		Result:     &res,
 	}
 
-	err = DB.Cypher(&cq)
+	err = neo.DB.Cypher(&cq)
 	assert.Nil(err)
 
 	if len(res) > 0 {
