@@ -15,3 +15,12 @@ func InitDB() (err error) {
 	DB, err = neoism.Connect(neoHost)
 	return err
 }
+
+// BuildCypherQuery return neoism library struct for quering Neo4j
+func BuildCypherQuery(stmt string, dst interface{}, props neoism.Props) neoism.CypherQuery {
+	return neoism.CypherQuery{
+		Statement:  stmt,
+		Result:     dst,
+		Parameters: props,
+	}
+}

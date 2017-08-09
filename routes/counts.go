@@ -3,7 +3,6 @@ package routes
 import (
 	"net/http"
 
-	"github.com/ArchGIS/new-gis/assert"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/jmcvetta/neoism"
 	"github.com/labstack/echo"
@@ -48,34 +47,26 @@ const (
 	`
 )
 
+// Count returns count of entities in DB
 func Count(c echo.Context) error {
 	result, err := queryCounts(c)
 
-	if err == nil {
-		return c.JSON(http.StatusOK, map[string][]count{
-			"counts": result,
-		})
+	if err != nil {
+		return err
 	}
 
-	return err
+	return c.JSON(http.StatusOK, echo.Map{
+		"counts": result,
+	})
 }
 
-func queryCounts(c echo.Context) ([]count, error) {
-	var err error
-	var res []count
-
-	cq := neoism.CypherQuery{
-		Statement:  statement,
-		Parameters: neoism.Props{},
-		Result:     &res,
-	}
+func queryCounts(c echo.Context) (counts []count, err error) {
+	cq := neo.BuildCypherQuery(statement, &counts, neoism.Props{})
 
 	err = neo.DB.Cypher(&cq)
-	assert.Nil(err)
-
-	if len(res) > 0 {
-		return res, nil
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, echo.ErrNotFound
+	return counts, nil
 }
