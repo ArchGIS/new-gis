@@ -49,15 +49,13 @@ const (
 
 // Count returns count of entities in DB
 func Count(c echo.Context) error {
-	result, err := queryCounts(c)
+	counts, err := queryCounts(c)
 
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{
-		"counts": result,
-	})
+	return c.JSON(http.StatusOK, echo.Map{"counts": counts})
 }
 
 func queryCounts(c echo.Context) (counts []count, err error) {

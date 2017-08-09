@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ArchGIS/new-gis/assert"
 	cypher "github.com/ArchGIS/new-gis/cypherBuilder"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
@@ -70,33 +69,37 @@ const (
 
 // Plural gets info about archeological sites
 func Plural(c echo.Context) error {
-	result, err := querySites(c)
+	sites, err := querySites(c)
 
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, response{
-		"sites": result,
-	})
+	return c.JSON(http.StatusOK, response{"sites": sites})
 }
 
-func querySites(c echo.Context) ([]site, error) {
-	var res []site
-	var err error
+func querySites(c echo.Context) (sites []site, err error) {
+	req := &requestParams{
+		Lang:   "en",
+		Name:   "",
+		Epoch:  0,
+		Type:   0,
+		Offset: 0,
+		Limit:  20,
+	}
 
-	req := newRequestParams()
 	if err = c.Bind(req); err != nil {
 		return nil, routes.NotAllowedQueryParams
 	}
 
 	if err = c.Validate(req); err != nil {
-		return nil, err
+		return nil, routes.NotValidQueryParameters
 	}
 
-	cq := neoism.CypherQuery{
-		Statement: finalStatement(statement, siteFilterString(req)),
-		Parameters: neoism.Props{
+	cq := neo.BuildCypherQuery(
+		finalStatement(statement, siteFilterString(req)),
+		&sites,
+		neoism.Props{
 			"language": req.Lang,
 			"name":     buildNeo4jRegexpFilter(req.Name),
 			"epoch":    req.Epoch,
@@ -104,40 +107,38 @@ func querySites(c echo.Context) ([]site, error) {
 			"offset":   req.Offset,
 			"limit":    req.Limit,
 		},
-		Result: &res,
-	}
+	)
 
 	err = neo.DB.Cypher(&cq)
-	assert.Nil(err)
+	if err != nil {
+		return nil, err
+	}
 
-	if len(res) > 0 {
-		ids := make([]int, len(res))
-		coords := make([]coordinates, len(res))
+	if len(sites) > 0 {
+		ids := make([]int, len(sites))
+		coords := make([]coordinates, len(sites))
 
-		for i, v := range res {
+		for i, v := range sites {
 			ids[i] = v.ID
 		}
 
-		coordStatement := cypher.BuildCoordinates(ids, entity)
-		coordsCQ := neoism.CypherQuery{
-			Statement: coordStatement,
-			Parameters: neoism.Props{
-				"language": req.Lang,
-			},
-			Result: &coords,
-		}
+		coordsCQ := neo.BuildCypherQuery(
+			cypher.BuildCoordinates(ids, entity),
+			&coords,
+			neoism.Props{"language": req.Lang},
+		)
 
 		err = neo.DB.Cypher(&coordsCQ)
-		assert.Nil(err)
-
-		for i := range coords {
-			res[i].Coords = coords[i]
+		if err != nil {
+			return nil, err
 		}
 
-		return res, nil
+		for i := range coords {
+			sites[i].Coords = coords[i]
+		}
 	}
 
-	return []site{}, nil
+	return sites, nil
 }
 
 func siteFilterString(reqParams *requestParams) string {
@@ -158,17 +159,6 @@ func siteFilterString(reqParams *requestParams) string {
 
 func finalStatement(statement, filter string) string {
 	return fmt.Sprintf(statement, filter)
-}
-
-func newRequestParams() *requestParams {
-	return &requestParams{
-		Lang:   "en",
-		Name:   "",
-		Epoch:  0,
-		Type:   0,
-		Offset: 0,
-		Limit:  20,
-	}
 }
 
 func buildNeo4jRegexpFilter(filter string) string {

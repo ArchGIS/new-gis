@@ -3,7 +3,6 @@ package routes
 import (
 	"net/http"
 
-	"github.com/ArchGIS/new-gis/assert"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/jmcvetta/neoism"
 	"github.com/labstack/echo"
@@ -23,33 +22,22 @@ type (
 	}
 )
 
-// Epochs return list of epochs
-func SiteTypes(c echo.Context) error {
+// SiteTypes return list with types of sites
+func SiteTypes(c echo.Context) (err error) {
 	req := &request{Lang: "en"}
-	var err error
 
 	if err = c.Bind(req); err != nil {
+		return NotAllowedQueryParams
+	}
+
+	var siteTypes []siteType
+
+	cq := neo.BuildCypherQuery(siteTypesStatement, &siteTypes, neoism.Props{"language": req.Lang})
+
+	err = neo.DB.Cypher(&cq)
+	if err != nil {
 		return err
 	}
 
-	var res []siteType
-
-	cq := neoism.CypherQuery{
-		Statement: siteTypesStatement,
-		Parameters: neoism.Props{
-			"language": req.Lang,
-		},
-		Result: &res,
-	}
-
-	err = neo.DB.Cypher(&cq)
-	assert.Nil(err)
-
-	if len(res) > 0 {
-		return c.JSON(http.StatusOK, echo.Map{
-			"siteTypes": res,
-		})
-	}
-
-	return echo.ErrNotFound
+	return c.JSON(http.StatusOK, echo.Map{"siteTypes": siteTypes})
 }
