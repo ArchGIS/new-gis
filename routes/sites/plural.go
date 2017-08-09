@@ -101,7 +101,7 @@ func querySites(c echo.Context) (sites []site, err error) {
 		&sites,
 		neoism.Props{
 			"language": req.Lang,
-			"name":     buildNeo4jRegexpFilter(req.Name),
+			"name":     neo.BuildRegexpFilter(req.Name),
 			"epoch":    req.Epoch,
 			"type":     req.Type,
 			"offset":   req.Offset,
@@ -159,8 +159,4 @@ func siteFilterString(reqParams *requestParams) string {
 
 func finalStatement(statement, filter string) string {
 	return fmt.Sprintf(statement, filter)
-}
-
-func buildNeo4jRegexpFilter(filter string) string {
-	return fmt.Sprintf("(?ui).*%s.*$", filter)
 }

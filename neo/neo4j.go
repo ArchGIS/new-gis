@@ -1,6 +1,7 @@
 package neo
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/jmcvetta/neoism"
@@ -23,4 +24,10 @@ func BuildCypherQuery(stmt string, dst interface{}, props neoism.Props) neoism.C
 		Result:     dst,
 		Parameters: props,
 	}
+}
+
+// BuildRegexpFilter return neo4j regexp filter
+// for case-insensitive text search
+func BuildRegexpFilter(needle string) string {
+	return fmt.Sprintf("(?ui).*%s.*$", needle)
 }
