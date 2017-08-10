@@ -6,7 +6,7 @@ import (
 
 const (
 	statement = `
-		MATCH (s:%s {id: %d})-[:has]->(sr:SpatialReference)-[:has]->(srt:SpatialReferenceType)-[:translation {lang: {language}}]->(trType:Translate)
+		OPTIONAL MATCH (s:%s {id: %d})-[:has]->(sr:SpatialReference)-[:has]->(srt:SpatialReferenceType)-[:translation {lang: {language}}]->(trType:Translate)
 		WITH s, sr, srt, trType%s
 		ORDER BY srt.id ASC, sr.date DESC LIMIT 1
 		WITH %scollect({date: sr.date, x: sr.x, y: sr.y, type: trType.name}) AS rows`
