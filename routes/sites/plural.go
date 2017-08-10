@@ -27,10 +27,8 @@ type (
 	}
 
 	coordinates struct {
-		Date int     `json:"date"`
-		X    float64 `json:"x"`
-		Y    float64 `json:"y"`
-		Type string  `json:"type"`
+		X float64 `json:"x"`
+		Y float64 `json:"y"`
 	}
 
 	requestParams struct {
@@ -125,7 +123,7 @@ func querySites(c echo.Context) (sites []site, err error) {
 		coordsCQ := neo.BuildCypherQuery(
 			cypher.BuildCoordinates(ids, entity),
 			&coords,
-			neoism.Props{"language": req.Lang},
+			neoism.Props{},
 		)
 
 		err = neo.DB.Cypher(&coordsCQ)

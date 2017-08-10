@@ -6,14 +6,14 @@ import (
 
 const (
 	statement = `
-		OPTIONAL MATCH (s:%s {id: %d})-[:has]->(sr:SpatialReference)-[:has]->(srt:SpatialReferenceType)-[:translation {lang: {language}}]->(trType:Translate)
-		WITH s, sr, srt, trType%s
+		OPTIONAL MATCH (s:%s {id: %d})-[:has]->(sr:SpatialReference)-[:has]->(srt:SpatialReferenceType)
+		WITH sr, srt%s
 		ORDER BY srt.id ASC, sr.date DESC LIMIT 1
-		WITH %scollect({date: sr.date, x: sr.x, y: sr.y, type: trType.name}) AS rows`
+		WITH %scollect({x: sr.x, y: sr.y}) AS rows`
 
 	ending = `
 		UNWIND rows AS row
-		RETURN row.date as date, row.x as x, row.y as y, row.type as type`
+		RETURN row.x as x, row.y as y`
 )
 
 const (
