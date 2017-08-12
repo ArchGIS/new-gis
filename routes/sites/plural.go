@@ -16,8 +16,8 @@ type (
 	item struct {
 		Name     []string `json:"site_name"`
 		ResName  []string `json:"research_name"`
-		Epoch    string   `json:"epoch"`
-		SiteType string   `json:"type"`
+		Epoch    int      `json:"epoch"`
+		SiteType int      `json:"type"`
 	}
 
 	site struct {
@@ -32,22 +32,19 @@ type (
 	}
 
 	requestParams struct {
-		Lang   string `query:"lang"`
 		Name   string `query:"site_name"`
 		Epoch  int    `query:"epoch_id" validate:"min=0,max=8"`
 		Type   int    `query:"type_id" validate:"min=0,max=12"`
 		Offset int    `query:"offset"`
 		Limit  int    `query:"limit"`
 	}
-
-	response map[string][]site
 )
 
 const (
 	statement = `
     MATCH (s:Monument)<--(k:Knowledge)
-    MATCH (s)-[:has]->(st:MonumentType)-[:translation {lang: {language}}]->(trType:Translate)
-    MATCH (s)-[:has]->(e:Epoch)-[:translation {lang: {language}}]->(trEpoch:Translate)
+    MATCH (s)-[:has]->(st:MonumentType)
+    MATCH (s)-[:has]->(e:Epoch)
     MATCH (r:Research)-[:has]->(k)
 		WHERE %s
 		WITH
@@ -55,8 +52,8 @@ const (
 			{
 				site_name: collect(k.monument_name),
 				research_name: collect(r.name),
-				epoch: trEpoch.name,
-				type: trType.name
+				epoch: e.id,
+				type: st.id
 			} as item
     RETURN id, item
     SKIP {offset} LIMIT {limit}
@@ -73,12 +70,11 @@ func Plural(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, response{"sites": sites})
+	return c.JSON(http.StatusOK, echo.Map{"sites": sites})
 }
 
 func querySites(c echo.Context) (sites []site, err error) {
 	req := &requestParams{
-		Lang:   "en",
 		Name:   "",
 		Epoch:  0,
 		Type:   0,
@@ -98,12 +94,11 @@ func querySites(c echo.Context) (sites []site, err error) {
 		finalStatement(statement, siteFilterString(req)),
 		&sites,
 		neoism.Props{
-			"language": req.Lang,
-			"name":     neo.BuildRegexpFilter(req.Name),
-			"epoch":    req.Epoch,
-			"type":     req.Type,
-			"offset":   req.Offset,
-			"limit":    req.Limit,
+			"name":   neo.BuildRegexpFilter(req.Name),
+			"epoch":  req.Epoch,
+			"type":   req.Type,
+			"offset": req.Offset,
+			"limit":  req.Limit,
 		},
 	)
 
