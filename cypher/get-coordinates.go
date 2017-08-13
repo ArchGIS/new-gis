@@ -1,4 +1,4 @@
-package cypherBuilder
+package cypher
 
 import (
 	"fmt"
@@ -9,11 +9,15 @@ const (
 		OPTIONAL MATCH (s:%s {id: %d})-[:has]->(sr:SpatialReference)-[:has]->(srt:SpatialReferenceType)
 		WITH sr, srt%s
 		ORDER BY srt.id ASC, sr.date DESC LIMIT 1
-		WITH %scollect({x: sr.x, y: sr.y}) AS rows`
+		WITH %scollect({x: sr.x, y: sr.y}) AS rows
+	`
 
 	ending = `
 		UNWIND rows AS row
-		RETURN row.x as x, row.y as y`
+		RETURN row.x as x, row.y as y
+	`
+
+	collectedEnding = "RETURN rows"
 )
 
 const (
@@ -22,7 +26,8 @@ const (
 	otherStmt
 )
 
-func BuildCoordinates(ids []uint64, entity string) string {
+// BuildCoordinates generates cypher query for searching actual coordinate
+func BuildCoordinates(ids []uint64, entity string, collected bool) string {
 	var result string
 	counter := 0
 
@@ -35,7 +40,11 @@ func BuildCoordinates(ids []uint64, entity string) string {
 		}
 		counter++
 	}
-	result += ending
+	if collected {
+		result += collectedEnding
+	} else {
+		result += ending
+	}
 
 	return result
 }

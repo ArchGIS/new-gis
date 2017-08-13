@@ -13,6 +13,7 @@ import (
 	middle "github.com/ArchGIS/new-gis/middlewares"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
+	"github.com/ArchGIS/new-gis/routes/researches"
 	"github.com/ArchGIS/new-gis/routes/sites"
 )
 
@@ -45,9 +46,11 @@ func main() {
 	apiRouter.Use(middleware.JWT([]byte(os.Getenv(authSecret))))
 
 	apiRouter.GET("/counts", routes.Count)
-	apiRouter.GET("/sites", sites.Plural)
 	apiRouter.GET("/epochs", routes.Epochs)
 	apiRouter.GET("/site_types", routes.SiteTypes)
+
+	apiRouter.GET("/sites", sites.Plural)
+	apiRouter.GET("/researches", researches.Plural)
 
 	e.Logger.Fatal(e.Start(":8181"))
 }

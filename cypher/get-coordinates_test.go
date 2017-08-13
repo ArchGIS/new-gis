@@ -1,4 +1,4 @@
-package cypherBuilder
+package cypher
 
 // func TestBuild(t *testing.T) {
 // 	ids := []int{1, 4, 1000}

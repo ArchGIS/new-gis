@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	cypher "github.com/ArchGIS/new-gis/cypherBuilder"
+	"github.com/ArchGIS/new-gis/cypher"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
 	"github.com/jmcvetta/neoism"
@@ -116,7 +116,7 @@ func querySites(c echo.Context) (sites []site, err error) {
 		}
 
 		coordsCQ := neo.BuildCypherQuery(
-			cypher.BuildCoordinates(ids, entity),
+			cypher.BuildCoordinates(ids, entity, false),
 			&coords,
 			neoism.Props{},
 		)
