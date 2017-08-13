@@ -22,7 +22,7 @@ const (
 	otherStmt
 )
 
-func BuildCoordinates(ids []int, entity string) string {
+func BuildCoordinates(ids []uint64, entity string) string {
 	var result string
 	counter := 0
 

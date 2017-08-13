@@ -21,7 +21,7 @@ type (
 	}
 
 	site struct {
-		ID     int         `json:"id"`
+		ID     uint64      `json:"id"`
 		Item   item        `json:"item"`
 		Coords coordinates `json:"coordinates"`
 	}
@@ -108,7 +108,7 @@ func querySites(c echo.Context) (sites []site, err error) {
 	}
 
 	if len(sites) > 0 {
-		ids := make([]int, len(sites))
+		ids := make([]uint64, len(sites))
 		coords := make([]coordinates, len(sites))
 
 		for i, v := range sites {
