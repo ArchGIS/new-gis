@@ -31,7 +31,7 @@ type (
 const (
 	statement = `
     MATCH (a:Author)<-[:hasauthor]-(r:Research)
-		WHERE %s
+		%s
 		WITH
 			a.id as id,
 			{
@@ -89,7 +89,7 @@ func queryAuthors(c echo.Context) (authors []author, err error) {
 
 func authorFilterString(reqParams *requestParams) (filter string) {
 	if reqParams.Name != "" {
-		filter = "a.name =~ {name}"
+		filter = "WHERE a.name =~ {name}"
 	}
 
 	return filter

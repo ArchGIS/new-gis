@@ -50,7 +50,7 @@ const (
 		MATCH (n:Research)-[:hasauthor]->(a:Author)
 		MATCH (n)-[:has]->(rep:Report)
 		MATCH (n)-[:has]->(rtype:ResearchType)-[:translation {lang: {language}}]->(trans:Translate)
-		WHERE %s
+		%s
 		WITH n.id as id, {
 			research_name: n.name,
 			report_name: rep.name,
@@ -150,6 +150,7 @@ func queryResearches(c echo.Context) (researches []research, err error) {
 
 func researchFilterString(reqParams *requestParams) string {
 	var filter []string
+	var stmt string
 
 	if reqParams.Name != "" {
 		filter = append(filter, "n.name =~ {name}")
@@ -157,8 +158,11 @@ func researchFilterString(reqParams *requestParams) string {
 	if reqParams.Year != routes.MinInt {
 		filter = append(filter, "n.year = {year}")
 	}
+	if len(filter) > 0 {
+		stmt = "WHERE " + strings.Join(filter, " AND ")
+	}
 
-	return strings.Join(filter, " AND ")
+	return stmt
 }
 
 func finalStatement(statement, filter string) string {

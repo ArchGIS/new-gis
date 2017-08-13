@@ -46,7 +46,7 @@ const (
     MATCH (s)-[:has]->(st:MonumentType)
     MATCH (s)-[:has]->(e:Epoch)
     MATCH (r:Research)-[:has]->(k)
-		WHERE %s
+		%s
 		WITH
 			s.id as id,
 			{
@@ -136,6 +136,7 @@ func querySites(c echo.Context) (sites []site, err error) {
 
 func siteFilterString(reqParams *requestParams) string {
 	var filter []string
+	var stmt string
 
 	if reqParams.Name != "" {
 		filter = append(filter, "k.monument_name =~ {name}")
@@ -146,8 +147,11 @@ func siteFilterString(reqParams *requestParams) string {
 	if reqParams.Type != 0 {
 		filter = append(filter, "st.id = {type}")
 	}
+	if len(filter) > 0 {
+		stmt = "WHERE " + strings.Join(filter, " AND ")
+	}
 
-	return strings.Join(filter, " AND ")
+	return stmt
 }
 
 func finalStatement(statement, filter string) string {
