@@ -13,6 +13,7 @@ import (
 	middle "github.com/ArchGIS/new-gis/middlewares"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
+	"github.com/ArchGIS/new-gis/routes/author"
 	"github.com/ArchGIS/new-gis/routes/research"
 	"github.com/ArchGIS/new-gis/routes/site"
 )
@@ -51,6 +52,7 @@ func main() {
 
 	apiRouter.GET("/sites", site.Plural)
 	apiRouter.GET("/researches", research.Plural)
+	apiRouter.GET("/authors", author.Plural)
 
 	e.Logger.Fatal(e.Start(":8181"))
 }
