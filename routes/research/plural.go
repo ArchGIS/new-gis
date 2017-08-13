@@ -63,7 +63,6 @@ const (
 	`
 
 	entity = "Research"
-	minInt = -int64(1<<63 - 1)
 )
 
 // Plural gets info about researches
@@ -81,7 +80,7 @@ func queryResearches(c echo.Context) (researches []research, err error) {
 	req := &requestParams{
 		Lang:   "en",
 		Name:   "",
-		Year:   minInt,
+		Year:   routes.MinInt,
 		Offset: 0,
 		Limit:  20,
 	}
@@ -155,7 +154,7 @@ func researchFilterString(reqParams *requestParams) string {
 	if reqParams.Name != "" {
 		filter = append(filter, "n.name =~ {name}")
 	}
-	if reqParams.Year != minInt {
+	if reqParams.Year != routes.MinInt {
 		filter = append(filter, "n.year = {year}")
 	}
 
