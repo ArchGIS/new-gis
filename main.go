@@ -13,8 +13,8 @@ import (
 	middle "github.com/ArchGIS/new-gis/middlewares"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
-	"github.com/ArchGIS/new-gis/routes/researches"
-	"github.com/ArchGIS/new-gis/routes/sites"
+	"github.com/ArchGIS/new-gis/routes/research"
+	"github.com/ArchGIS/new-gis/routes/site"
 )
 
 func init() {
@@ -49,8 +49,8 @@ func main() {
 	apiRouter.GET("/epochs", routes.Epochs)
 	apiRouter.GET("/site_types", routes.SiteTypes)
 
-	apiRouter.GET("/sites", sites.Plural)
-	apiRouter.GET("/researches", researches.Plural)
+	apiRouter.GET("/sites", site.Plural)
+	apiRouter.GET("/researches", research.Plural)
 
 	e.Logger.Fatal(e.Start(":8181"))
 }

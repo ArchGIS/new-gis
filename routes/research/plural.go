@@ -1,4 +1,4 @@
-package researches
+package research
 
 import (
 	"fmt"
