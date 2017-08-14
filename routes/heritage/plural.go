@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ArchGIS/new-gis/cypher"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
 	"github.com/jmcvetta/neoism"
@@ -18,8 +19,14 @@ type (
 	}
 
 	heritage struct {
-		ID   uint64 `json:"id"`
-		Item item   `json:"item"`
+		ID     uint64      `json:"id"`
+		Item   item        `json:"item"`
+		Coords coordinates `json:"coordinates"`
+	}
+
+	coordinates struct {
+		X float64 `json:"x"`
+		Y float64 `json:"y"`
 	}
 
 	requestParams struct {
@@ -84,6 +91,31 @@ func queryHeritages(c echo.Context) (heritages []heritage, err error) {
 	err = neo.DB.Cypher(&cq)
 	if err != nil {
 		return nil, err
+	}
+
+	heritageLength := len(heritages)
+	if heritageLength > 0 {
+		ids := make([]uint64, heritageLength)
+		coords := make([]coordinates, heritageLength)
+
+		for i, v := range heritages {
+			ids[i] = v.ID
+		}
+
+		cq = neo.BuildCypherQuery(
+			cypher.BuildCoordinates(ids, "Heritage", false),
+			&coords,
+			neoism.Props{},
+		)
+
+		err = neo.DB.Cypher(&cq)
+		if err != nil {
+			return nil, err
+		}
+
+		for i, v := range coords {
+			heritages[i].Coords = v
+		}
 	}
 
 	return heritages, nil
