@@ -14,6 +14,7 @@ import (
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
 	"github.com/ArchGIS/new-gis/routes/author"
+	"github.com/ArchGIS/new-gis/routes/heritage"
 	"github.com/ArchGIS/new-gis/routes/report"
 	"github.com/ArchGIS/new-gis/routes/research"
 	"github.com/ArchGIS/new-gis/routes/site"
@@ -55,6 +56,7 @@ func main() {
 	apiRouter.GET("/researches", research.Plural)
 	apiRouter.GET("/authors", author.Plural)
 	apiRouter.GET("/reports", report.Plural)
+	apiRouter.GET("/heritages", heritage.Plural)
 
 	e.Logger.Fatal(e.Start(":8181"))
 }
