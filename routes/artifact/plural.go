@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/ArchGIS/new-gis/cypher"
-	"github.com/ArchGIS/new-gis/dbg"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
 	"github.com/jmcvetta/neoism"
@@ -83,14 +82,11 @@ func queryArtifacts(c echo.Context) (artifacts []artifact, err error) {
 		return nil, routes.NotValidQueryParameters
 	}
 
-	tmp := finalStatement(statement, artifactFilterString(req))
-	tmp1 := neo.BuildRegexpFilter(req.Name)
-	dbg.DumpSome(tmp, tmp1)
 	cq := neo.BuildCypherQuery(
-		tmp,
+		finalStatement(statement, artifactFilterString(req)),
 		&artifacts,
 		neoism.Props{
-			"name":   tmp1,
+			"name":   neo.BuildRegexpFilter(req.Name),
 			"offset": req.Offset,
 			"limit":  req.Limit,
 		},
@@ -100,7 +96,6 @@ func queryArtifacts(c echo.Context) (artifacts []artifact, err error) {
 	if err != nil {
 		return nil, err
 	}
-	dbg.DumpSome(artifacts, cq)
 
 	artiLength := len(artifacts)
 	if artiLength > 0 {
