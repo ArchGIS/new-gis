@@ -13,6 +13,7 @@ import (
 	middle "github.com/ArchGIS/new-gis/middlewares"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
+	"github.com/ArchGIS/new-gis/routes/artifact"
 	"github.com/ArchGIS/new-gis/routes/author"
 	"github.com/ArchGIS/new-gis/routes/excavation"
 	"github.com/ArchGIS/new-gis/routes/heritage"
@@ -61,6 +62,7 @@ func main() {
 	apiRouter.GET("/heritages", heritage.Plural)
 	apiRouter.GET("/excavations", excavation.Plural)
 	apiRouter.GET("/radiocarbons", radiocarbon.Plural)
+	apiRouter.GET("/artifacts", artifact.Plural)
 
 	e.Logger.Fatal(e.Start(":8181"))
 }
