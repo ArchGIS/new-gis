@@ -56,6 +56,7 @@ func main() {
 	apiRouter.GET("/epochs", routes.Epochs)
 	apiRouter.GET("/site_types", routes.SiteTypes)
 	apiRouter.GET("/cultures", routes.Cultures)
+	apiRouter.GET("/cities", routes.Cities)
 
 	apiRouter.GET("/sites", site.Plural)
 	apiRouter.GET("/researches", research.Plural)
