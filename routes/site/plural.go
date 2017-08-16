@@ -90,7 +90,7 @@ func querySites(c echo.Context) (sites []site, err error) {
 	}
 
 	cq := neo.BuildCypherQuery(
-		finalStatement(statement, siteFilterString(req)),
+		cypher.Filter(statement, siteFilterString(req)),
 		&sites,
 		neoism.Props{
 			"name":   neo.BuildRegexpFilter(req.Name),
