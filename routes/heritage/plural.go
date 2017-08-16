@@ -1,7 +1,6 @@
 package heritage
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/ArchGIS/new-gis/cypher"
@@ -79,7 +78,7 @@ func queryHeritages(c echo.Context) (heritages []heritage, err error) {
 	}
 
 	cq := neo.BuildCypherQuery(
-		finalStatement(statement, heritageFilterString(req)),
+		cypher.Filter(statement, heritageFilterString(req)),
 		&heritages,
 		neoism.Props{
 			"name":   neo.BuildRegexpFilter(req.Name),
@@ -127,8 +126,4 @@ func heritageFilterString(reqParams *requestParams) (filter string) {
 	}
 
 	return filter
-}
-
-func finalStatement(statement, filter string) string {
-	return fmt.Sprintf(statement, filter)
 }

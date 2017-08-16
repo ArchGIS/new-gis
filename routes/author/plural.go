@@ -1,9 +1,9 @@
 package author
 
 import (
-	"fmt"
 	"net/http"
 
+	"github.com/ArchGIS/new-gis/cypher"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
 	"github.com/jmcvetta/neoism"
@@ -70,7 +70,7 @@ func queryAuthors(c echo.Context) (authors []author, err error) {
 	}
 
 	cq := neo.BuildCypherQuery(
-		finalStatement(statement, authorFilterString(req)),
+		cypher.Filter(statement, authorFilterString(req)),
 		&authors,
 		neoism.Props{
 			"name":   neo.BuildRegexpFilter(req.Name),
@@ -93,8 +93,4 @@ func authorFilterString(reqParams *requestParams) (filter string) {
 	}
 
 	return filter
-}
-
-func finalStatement(statement, filter string) string {
-	return fmt.Sprintf(statement, filter)
 }

@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"fmt"
 	"net/http"
 
+	"github.com/ArchGIS/new-gis/cypher"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/jmcvetta/neoism"
 	"github.com/labstack/echo"
@@ -39,7 +39,7 @@ func Cultures(c echo.Context) (err error) {
 
 	var cultures []culture
 	cq := neo.BuildCypherQuery(
-		finalStatement(cultureStatement, filterCulture(req)),
+		cypher.Filter(cultureStatement, filterCulture(req)),
 		&cultures,
 		neoism.Props{
 			"language": req.Lang,
@@ -61,8 +61,4 @@ func filterCulture(req *requestCulture) (filter string) {
 	}
 
 	return filter
-}
-
-func finalStatement(statement, filter string) string {
-	return fmt.Sprintf(statement, filter)
 }

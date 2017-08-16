@@ -1,11 +1,10 @@
 package report
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/ArchGIS/new-gis/dbg"
+	"github.com/ArchGIS/new-gis/cypher"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
 	"github.com/jmcvetta/neoism"
@@ -77,10 +76,8 @@ func queryReports(c echo.Context) (reports []report, err error) {
 		return nil, routes.NotValidQueryParameters
 	}
 
-	tmp := finalStatement(statement, reportFilterString(req))
-	dbg.Dump(tmp)
 	cq := neo.BuildCypherQuery(
-		tmp,
+		cypher.Filter(statement, reportFilterString(req)),
 		&reports,
 		neoism.Props{
 			"name":   neo.BuildRegexpFilter(req.Name),
@@ -113,8 +110,4 @@ func reportFilterString(reqParams *requestParams) string {
 	}
 
 	return stmt
-}
-
-func finalStatement(statement, filter string) string {
-	return fmt.Sprintf(statement, filter)
 }

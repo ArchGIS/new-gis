@@ -1,7 +1,6 @@
 package research
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -94,7 +93,7 @@ func queryResearches(c echo.Context) (researches []research, err error) {
 	}
 
 	cq := neo.BuildCypherQuery(
-		finalStatement(statement, researchFilterString(req)),
+		cypher.Filter(statement, researchFilterString(req)),
 		&researches,
 		neoism.Props{
 			"language": req.Lang,
@@ -163,8 +162,4 @@ func researchFilterString(reqParams *requestParams) string {
 	}
 
 	return stmt
-}
-
-func finalStatement(statement, filter string) string {
-	return fmt.Sprintf(statement, filter)
 }

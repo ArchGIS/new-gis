@@ -1,7 +1,6 @@
 package radiocarbon
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/ArchGIS/new-gis/cypher"
@@ -77,7 +76,7 @@ func queryRadiocarbon(c echo.Context) (rcs []radiocarbon, err error) {
 	}
 
 	cq := neo.BuildCypherQuery(
-		finalStatement(statement, carbonFilterString(req)),
+		cypher.Filter(statement, carbonFilterString(req)),
 		&rcs,
 		neoism.Props{
 			"name":   neo.BuildRegexpFilter(req.Name),
@@ -125,8 +124,4 @@ func carbonFilterString(reqParams *requestParams) (filter string) {
 	}
 
 	return filter
-}
-
-func finalStatement(statement, filter string) string {
-	return fmt.Sprintf(statement, filter)
 }

@@ -1,7 +1,6 @@
 package excavation
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -89,7 +88,7 @@ func queryExcavations(c echo.Context) (excs []excavation, err error) {
 	}
 
 	cq := neo.BuildCypherQuery(
-		finalStatement(statement, excFilterString(req)),
+		cypher.Filter(statement, excFilterString(req)),
 		&excs,
 		neoism.Props{
 			"name":     neo.BuildRegexpFilter(req.Name),
@@ -151,8 +150,4 @@ func excFilterString(reqParams *requestParams) string {
 	}
 
 	return stmt
-}
-
-func finalStatement(statement, filter string) string {
-	return fmt.Sprintf(statement, filter)
 }

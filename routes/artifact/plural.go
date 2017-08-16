@@ -1,7 +1,6 @@
 package artifact
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/ArchGIS/new-gis/cypher"
@@ -83,7 +82,7 @@ func queryArtifacts(c echo.Context) (artifacts []artifact, err error) {
 	}
 
 	cq := neo.BuildCypherQuery(
-		finalStatement(statement, artifactFilterString(req)),
+		cypher.Filter(statement, artifactFilterString(req)),
 		&artifacts,
 		neoism.Props{
 			"name":   neo.BuildRegexpFilter(req.Name),
@@ -131,8 +130,4 @@ func artifactFilterString(reqParams *requestParams) (filter string) {
 	}
 
 	return filter
-}
-
-func finalStatement(statement, filter string) string {
-	return fmt.Sprintf(statement, filter)
 }

@@ -1,7 +1,6 @@
 package site
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -152,8 +151,4 @@ func siteFilterString(reqParams *requestParams) string {
 	}
 
 	return stmt
-}
-
-func finalStatement(statement, filter string) string {
-	return fmt.Sprintf(statement, filter)
 }
