@@ -97,7 +97,7 @@ func queryResearches(c echo.Context) (researches []research, err error) {
 		&researches,
 		neoism.Props{
 			"language": req.Lang,
-			"name":     neo.BuildRegexpFilter(req.Name),
+			"name":     cypher.BuildRegexpFilter(req.Name),
 			"year":     req.Year,
 			"offset":   req.Offset,
 			"limit":    req.Limit,

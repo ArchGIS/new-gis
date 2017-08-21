@@ -81,7 +81,7 @@ func queryHeritages(c echo.Context) (heritages []heritage, err error) {
 		cypher.Filter(statement, heritageFilterString(req)),
 		&heritages,
 		neoism.Props{
-			"name":   neo.BuildRegexpFilter(req.Name),
+			"name":   cypher.BuildRegexpFilter(req.Name),
 			"offset": req.Offset,
 			"limit":  req.Limit,
 		},

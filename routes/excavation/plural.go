@@ -91,8 +91,8 @@ func queryExcavations(c echo.Context) (excs []excavation, err error) {
 		cypher.Filter(statement, excFilterString(req)),
 		&excs,
 		neoism.Props{
-			"name":     neo.BuildRegexpFilter(req.Name),
-			"author":   neo.BuildRegexpFilter(req.Author),
+			"name":     cypher.BuildRegexpFilter(req.Name),
+			"author":   cypher.BuildRegexpFilter(req.Author),
 			"res_year": req.ResYear,
 			"offset":   req.Offset,
 			"limit":    req.Limit,

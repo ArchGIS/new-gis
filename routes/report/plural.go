@@ -80,7 +80,7 @@ func queryReports(c echo.Context) (reports []report, err error) {
 		cypher.Filter(statement, reportFilterString(req)),
 		&reports,
 		neoism.Props{
-			"name":   neo.BuildRegexpFilter(req.Name),
+			"name":   cypher.BuildRegexpFilter(req.Name),
 			"year":   req.Year,
 			"offset": req.Offset,
 			"limit":  req.Limit,

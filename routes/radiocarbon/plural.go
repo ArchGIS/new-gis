@@ -79,7 +79,7 @@ func queryRadiocarbon(c echo.Context) (rcs []radiocarbon, err error) {
 		cypher.Filter(statement, carbonFilterString(req)),
 		&rcs,
 		neoism.Props{
-			"name":   neo.BuildRegexpFilter(req.Name),
+			"name":   cypher.BuildRegexpFilter(req.Name),
 			"offset": req.Offset,
 			"limit":  req.Limit,
 		},

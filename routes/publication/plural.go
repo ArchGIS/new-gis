@@ -78,7 +78,7 @@ func queryPubs(c echo.Context) (pubs []publication, err error) {
 		cypher.Filter(statement, pubFilterString(req)),
 		&pubs,
 		neoism.Props{
-			"name":   neo.BuildRegexpFilter(req.Name),
+			"name":   cypher.BuildRegexpFilter(req.Name),
 			"year":   req.Year,
 			"offset": req.Offset,
 			"limit":  req.Limit,

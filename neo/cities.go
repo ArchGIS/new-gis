@@ -17,7 +17,7 @@ func (db *DB) Cities(req echo.Map) (cities []City, err error) {
 		&cities,
 		neoism.Props{
 			"language": req["lang"],
-			"name":     BuildRegexpFilter(req["name"]),
+			"name":     cypher.BuildRegexpFilter(req["name"]),
 		},
 	)
 

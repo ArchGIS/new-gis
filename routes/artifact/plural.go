@@ -85,7 +85,7 @@ func queryArtifacts(c echo.Context) (artifacts []artifact, err error) {
 		cypher.Filter(statement, artifactFilterString(req)),
 		&artifacts,
 		neoism.Props{
-			"name":   neo.BuildRegexpFilter(req.Name),
+			"name":   cypher.BuildRegexpFilter(req.Name),
 			"offset": req.Offset,
 			"limit":  req.Limit,
 		},

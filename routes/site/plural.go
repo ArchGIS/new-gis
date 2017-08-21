@@ -93,7 +93,7 @@ func querySites(c echo.Context) (sites []site, err error) {
 		cypher.Filter(statement, siteFilterString(req)),
 		&sites,
 		neoism.Props{
-			"name":   neo.BuildRegexpFilter(req.Name),
+			"name":   cypher.BuildRegexpFilter(req.Name),
 			"epoch":  req.Epoch,
 			"type":   req.Type,
 			"offset": req.Offset,

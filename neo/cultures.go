@@ -17,7 +17,7 @@ func (db *DB) Cultures(req echo.Map) (cultures []Culture, err error) {
 		&cultures,
 		neoism.Props{
 			"language": req["lang"],
-			"name":     BuildRegexpFilter(req["name"]),
+			"name":     cypher.BuildRegexpFilter(req["name"]),
 		},
 	)
 

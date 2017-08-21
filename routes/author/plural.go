@@ -73,7 +73,7 @@ func queryAuthors(c echo.Context) (authors []author, err error) {
 		cypher.Filter(statement, authorFilterString(req)),
 		&authors,
 		neoism.Props{
-			"name":   neo.BuildRegexpFilter(req.Name),
+			"name":   cypher.BuildRegexpFilter(req.Name),
 			"offset": req.Offset,
 			"limit":  req.Limit,
 		},

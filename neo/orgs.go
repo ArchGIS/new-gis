@@ -15,7 +15,7 @@ func (db *DB) Organizations(req echo.Map) (orgs []organisation, err error) {
 	cq := BuildCypherQuery(
 		cypher.Filter(orgStatement, filterOrgs(req)),
 		&orgs,
-		neoism.Props{"name": BuildRegexpFilter(req["name"])},
+		neoism.Props{"name": cypher.BuildRegexpFilter(req["name"])},
 	)
 
 	err = db.Cypher(&cq)
