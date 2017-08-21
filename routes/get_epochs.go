@@ -3,23 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"github.com/ArchGIS/new-gis/neo"
-	"github.com/jmcvetta/neoism"
 	"github.com/labstack/echo"
-)
-
-const (
-	epochsStatement = `
-		MATCH (n:Epoch)-[:translation {lang: {language}}]->(tr:Translate)
-		RETURN n.id as id, tr.name as name
-	`
-)
-
-type (
-	epoch struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
-	}
 )
 
 // Epochs return list of epochs
@@ -30,11 +14,7 @@ func Epochs(c echo.Context) (err error) {
 		return NotAllowedQueryParams
 	}
 
-	var epochs []epoch
-
-	cq := neo.BuildCypherQuery(epochsStatement, &epochs, neoism.Props{"language": req.Lang})
-
-	err = neo.DB.Cypher(&cq)
+	epochs, err := Model.db.Epochs(echo.Map{"lang": req.Lang})
 	if err != nil {
 		return err
 	}

@@ -2,19 +2,38 @@ package neo
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/jmcvetta/neoism"
+	"github.com/labstack/echo"
+)
+
+type (
+	DataStore interface {
+		Counts() ([]NodesCounter, error)
+		Cities(echo.Map) ([]City, error)
+		Cultures(echo.Map) ([]Culture, error)
+		Epochs(echo.Map) ([]epoch, error)
+		Organizations(echo.Map) ([]organisation, error)
+		SiteTypes(echo.Map) ([]siteType, error)
+	}
+
+	DB struct {
+		*neoism.Database
+	}
 )
 
 // DB is neo4j database instance
-var DB *neoism.Database
+// var DB *neoism.Database
 
 // InitDB connecting to Neoj
-func InitDB() (err error) {
-	neoHost := os.Getenv("Neo4jHost")
-	DB, err = neoism.Connect(neoHost)
-	return err
+func InitDB(source string) (*DB, error) {
+	// neoHost := os.Getenv("Neo4jHost")
+	db, err := neoism.Connect(source)
+	if err != nil {
+		return nil, err
+	}
+
+	return &DB{db}, nil
 }
 
 // BuildCypherQuery return neoism library struct for quering Neo4j
@@ -28,6 +47,6 @@ func BuildCypherQuery(stmt string, dst interface{}, props neoism.Props) neoism.C
 
 // BuildRegexpFilter return neo4j regexp filter
 // for case-insensitive text search
-func BuildRegexpFilter(needle string) string {
+func BuildRegexpFilter(needle interface{}) string {
 	return fmt.Sprintf("(?ui).*%s.*$", needle)
 }
