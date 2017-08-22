@@ -20,9 +20,6 @@ type (
 	}
 )
 
-// DB is neo4j database instance
-// var DB *neoism.Database
-
 // InitDB connecting to Neoj
 func InitDB(source string) (*DB, error) {
 	// neoHost := os.Getenv("Neo4jHost")
