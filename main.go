@@ -49,7 +49,7 @@ func main() {
 	apiRouter.GET("/cities", routes.Cities)
 	apiRouter.GET("/organizations", routes.Organizations)
 
-	// apiRouter.GET("/sites", site.Plural)
+	apiRouter.GET("/sites", routes.Sites)
 	// apiRouter.GET("/researches", research.Plural)
 	// apiRouter.GET("/authors", author.Plural)
 	// apiRouter.GET("/reports", report.Plural)
@@ -58,6 +58,8 @@ func main() {
 	// apiRouter.GET("/radiocarbons", radiocarbon.Plural)
 	// apiRouter.GET("/artifacts", artifact.Plural)
 	// apiRouter.GET("/publications", publication.Plural)
+
+	apiRouter.GET("/site/:id", routes.SingleSite)
 
 	e.Logger.Fatal(e.Start(":8181"))
 }

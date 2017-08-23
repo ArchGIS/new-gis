@@ -13,6 +13,9 @@ type (
 		Epochs(echo.Map) ([]epoch, error)
 		Organizations(echo.Map) ([]organisation, error)
 		SiteTypes(echo.Map) ([]siteType, error)
+
+		GetSite(string, string) (*singleSite, error)
+		Sites(echo.Map) ([]pluralSite, error)
 	}
 
 	DB struct {
