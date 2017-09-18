@@ -1,13 +1,9 @@
-package research
+package neo
 
 import (
-	"net/http"
 	"strings"
 
 	"github.com/ArchGIS/new-gis/cypher"
-
-	"github.com/ArchGIS/new-gis/neo"
-	"github.com/ArchGIS/new-gis/routes"
 	"github.com/jmcvetta/neoism"
 	"github.com/labstack/echo"
 )
@@ -21,7 +17,7 @@ type (
 		Type       string `json:"res_type"`
 	}
 
-	research struct {
+	pluralResearch struct {
 		ID     uint64        `json:"id"`
 		Item   item          `json:"item"`
 		Coords []coordinates `json:"coordinates"`
@@ -34,18 +30,10 @@ type (
 		X float64 `json:"x"`
 		Y float64 `json:"y"`
 	}
-
-	requestParams struct {
-		Lang   string `query:"lang"`
-		Name   string `query:"res_name"`
-		Year   int64  `query:"res_year"`
-		Offset int    `query:"offset"`
-		Limit  int    `query:"limit"`
-	}
 )
 
 const (
-	statement = `
+	pluralResearchStatement = `
 		MATCH (n:Research)-[:hasauthor]->(a:Author)
 		MATCH (n)-[:has]->(rep:Report)
 		MATCH (n)-[:has]->(rtype:ResearchType)-[:translation {lang: {language}}]->(trans:Translate)
@@ -64,97 +52,70 @@ const (
 	entity = "Research"
 )
 
-// Plural gets info about researches
-func Plural(c echo.Context) error {
-	researches, err := queryResearches(c)
-
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, echo.Map{"researches": researches})
-}
-
-func queryResearches(c echo.Context) (researches []research, err error) {
-	req := &requestParams{
-		Lang:   "en",
-		Name:   "",
-		Year:   routes.MinInt,
-		Offset: 0,
-		Limit:  20,
-	}
-
-	if err = c.Bind(req); err != nil {
-		return nil, routes.NotAllowedQueryParams
-	}
-
-	if err = c.Validate(req); err != nil {
-		return nil, routes.NotValidQueryParameters
-	}
-
-	cq := neo.BuildCypherQuery(
+func (db *DB) Researches(req echo.Map) (res []pluralResearch, err error) {
+	cq := BuildCypherQuery(
 		cypher.Filter(statement, researchFilterString(req)),
-		&researches,
+		&res,
 		neoism.Props{
-			"language": req.Lang,
-			"name":     cypher.BuildRegexpFilter(req.Name),
-			"year":     req.Year,
-			"offset":   req.Offset,
-			"limit":    req.Limit,
+			"language": req["lang"],
+			"name":     cypher.BuildRegexpFilter(req["name"]),
+			"year":     req["year"],
+			"offset":   req["offset"],
+			"limit":    req["limit"],
 		},
 	)
 
-	err = neo.DB.Cypher(&cq)
+	err = db.Cypher(&cq)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(researches) > 0 {
-		ids := make([]uint64, len(researches))
-		for i, v := range researches {
+	if len(res) > 0 {
+		ids := make([]uint64, len(res))
+		for i, v := range res {
 			ids[i] = v.ID
 		}
 
 		listResearchSites := []cypher.ListIdsOfSites{}
-		cq = neo.BuildCypherQuery(
+		cq = BuildCypherQuery(
 			cypher.IdsOfResearchSites(ids),
 			&listResearchSites,
 			neoism.Props{},
 		)
-		err = neo.DB.Cypher(&cq)
+		err = db.Cypher(&cq)
 		if err != nil {
 			return nil, err
 		}
 
-		coords := make([]resCoord, len(researches))
+		coords := make([]resCoord, len(res))
 
-		coordsCQ := neo.BuildCypherQuery(
+		coordsCQ := BuildCypherQuery(
 			cypher.ResearchCoords(listResearchSites),
 			&coords,
 			neoism.Props{},
 		)
 
-		err = neo.DB.Cypher(&coordsCQ)
+		err = db.Cypher(&coordsCQ)
 		if err != nil {
 			return nil, err
 		}
 
 		for i := range coords {
-			researches[i].Coords = coords[i].Rows
+			res[i].Coords = coords[i].Rows
 		}
 	}
 
-	return researches, nil
+	return res, nil
 }
 
-func researchFilterString(reqParams *requestParams) string {
+func researchFilterString(reqParams echo.Map) string {
 	var filter []string
 	var stmt string
 
-	if reqParams.Name != "" {
+	if reqParams["name"] != "" {
 		filter = append(filter, "n.name =~ {name}")
 	}
-	if reqParams.Year != routes.MinInt {
+	if reqParams["year"] != MinInt {
 		filter = append(filter, "n.year = {year}")
 	}
 	if len(filter) > 0 {

@@ -1,10 +1,10 @@
 package neo
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/ArchGIS/new-gis/cypher"
-	"github.com/ArchGIS/new-gis/dbg"
 	"github.com/jmcvetta/neoism"
 	"github.com/labstack/echo"
 )
@@ -13,18 +13,49 @@ import (
 ////// Singular //////
 //////////////////////
 
-type singleSite struct {
-	Names     []string `json:"names"`
-	Epoch     int      `json:"epoch"`
-	Stype     int      `json:"type"`
-	Cultures  []string `json:"cultures"`
-	ResCount  int      `json:"res_count"`
-	ExcCount  int      `json:"exc_count"`
-	ExcArea   int      `json:"exc_area"`
-	ArtiCount int      `json:"arti_count"`
-	HeritName string   `json:"herit_name"`
-	HeritID   uint64   `json:"herit_id"`
-}
+type (
+	singleSite struct {
+		Name     string   `json:"name"`
+		Names    []string `json:"names"`
+		Epoch    int      `json:"epoch"`
+		Stype    int      `json:"type"`
+		Cultures []string `json:"cultures"`
+
+		ResCount  int `json:"resCount"`
+		ExcCount  int `json:"excCount"`
+		ExcArea   int `json:"excArea"`
+		ArtiCount int `json:"artiCount"`
+
+		Heritages []heritage `json:"heritages"`
+
+		LayersCount int     `json:"layersCount"`
+		LayersTop   []layer `json:"layersTop"`
+		LayersMid   []layer `json:"layersMid"`
+		LayersBot   []layer `json:"layersBot"`
+
+		Coords []siteCoords `json:"coords"`
+	}
+
+	heritage struct {
+		Name string `json:"name"`
+		ID   uint64 `json:"id"`
+	}
+
+	layer struct {
+		ID      uint64 `json:"id"`
+		Name    string `json:"name"`
+		Epoch   string `json:"epoch"`
+		Culture string `json:"culture"`
+	}
+
+	siteCoords struct {
+		Date     uint64  `json:"date"`
+		Type     int     `json:"type"`
+		Accuracy int     `json:"accuracy"`
+		Points   []point `json:"points"`
+		// Actual   bool    `json:"actual"`
+	}
+)
 
 const singleStatement = `
 	MATCH (m:Monument {id: toInteger({id})})
@@ -36,35 +67,49 @@ const singleStatement = `
 	OPTIONAL MATCH (r)-->(exc:Excavation)<--(m)
 	OPTIONAL MATCH (exc)-->(a:Artifact)
 	OPTIONAL MATCH (m)<--(h:Heritage)
+	OPTIONAL MATCH (m)-[:has]->(sr:SpatialReference)-[:has]->(srt:SpatialReferenceType)
+	WITH sr, srt, m, ep, mt, k, r, c, tr, exc, a, h
+	ORDER BY srt.id ASC, sr.date DESC
 	RETURN
 		COLLECT(k.monument_name) AS names,
 		ep.id AS epoch,
 		mt.id AS type,
 		COLLECT(tr.name) AS cultures,
-		COUNT(r) AS res_count,
-		COUNT(exc) AS exc_count,
-		SUM(exc.area) AS exc_area,
-		COUNT(a) AS arti_count,
-		h.name AS herit_name,
-		h.id AS herit_id
+		COUNT(r) AS resCount,
+		COUNT(exc) AS excCount,
+		SUM(exc.area) AS excArea,
+		COUNT(a) AS artiCount,
+		COLLECT({name: h.name, id: h.id}) as heritages,
+		COLLECT({date: sr.date, accuracy: srt.id, type: 1, points: [{x: sr.x, y: sr.y}]}) AS coords
 `
 
-func (db *DB) GetSite(id, lang string) (*singleSite, error) {
-	var dbResponse []singleSite
-	cq := BuildCypherQuery(
-		singleStatement,
-		&dbResponse,
-		neoism.Props{"id": id, "language": lang},
-	)
+func (db *DB) GetSite(id, lang string) ([]knowledge, error) {
+	// var dbResponse []singleSite
+	// cq := BuildCypherQuery(
+	// 	singleStatement,
+	// 	&dbResponse,
+	// 	neoism.Props{"id": id, "language": lang},
+	// )
 
-	dbg.Dump(cq)
-	err := db.Cypher(&cq)
+	// err := db.Cypher(&cq)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// dbg.Dump(dbResponse)
+
+	idInt, _ := strconv.Atoi(id)
+	site := NewSite(uint64(idInt))
+
+	var knowledges []knowledge
+	cqs := []*neoism.CypherQuery{
+		site.to("", &knowledges, []string{}),
+	}
+
+	err := db.CypherBatch(cqs)
 	if err != nil {
 		return nil, err
 	}
-	dbg.Dump(dbResponse)
-
-	return &dbResponse[0], nil
+	return knowledges, nil //&dbResponse[0], nil
 }
 
 //////////////////////
@@ -72,7 +117,7 @@ func (db *DB) GetSite(id, lang string) (*singleSite, error) {
 //////////////////////
 
 type (
-	item struct {
+	siteItem struct {
 		Name     []string `json:"site_name"`
 		ResName  []string `json:"research_name"`
 		Epoch    int      `json:"epoch"`
@@ -83,11 +128,6 @@ type (
 		ID     uint64      `json:"id"`
 		Item   item        `json:"item"`
 		Coords coordinates `json:"coordinates"`
-	}
-
-	coordinates struct {
-		X float64 `json:"x"`
-		Y float64 `json:"y"`
 	}
 )
 
@@ -110,7 +150,7 @@ const (
     SKIP {offset} LIMIT {limit}
 	`
 
-	entity = "Monument"
+	monument = "Monument"
 )
 
 func (db *DB) Sites(req echo.Map) (sites []pluralSite, err error) {
@@ -140,7 +180,7 @@ func (db *DB) Sites(req echo.Map) (sites []pluralSite, err error) {
 		}
 
 		coordsCQ := BuildCypherQuery(
-			cypher.BuildCoordinates(ids, entity, false),
+			cypher.BuildCoordinates(ids, monument, false),
 			&coords,
 			neoism.Props{},
 		)

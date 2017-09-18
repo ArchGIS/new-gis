@@ -14,8 +14,9 @@ type (
 		Organizations(echo.Map) ([]organisation, error)
 		SiteTypes(echo.Map) ([]siteType, error)
 
-		GetSite(string, string) (*singleSite, error)
+		GetSite(string, string) ([]knowledge, error)
 		Sites(echo.Map) ([]pluralSite, error)
+		Researches(echo.Map) ([]pluralResearch, error)
 	}
 
 	DB struct {
