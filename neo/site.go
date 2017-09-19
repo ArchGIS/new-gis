@@ -102,7 +102,7 @@ func (db *DB) GetSite(id, lang string) ([]knowledge, error) {
 
 	var knowledges []knowledge
 	cqs := []*neoism.CypherQuery{
-		site.to("", &knowledges, []string{}),
+		site.to(&knowledges, []string{"monument_name", "description"}),
 	}
 
 	err := db.CypherBatch(cqs)
