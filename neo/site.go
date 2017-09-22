@@ -17,28 +17,23 @@ type (
 	singleSite struct {
 		Name     string   `json:"name"`
 		Names    []string `json:"names"`
-		Epoch    int      `json:"epoch"`
-		Stype    int      `json:"type"`
+		Epoch    string   `json:"epoch"`
+		Stype    string   `json:"type"`
 		Cultures []string `json:"cultures"`
 
-		ResCount  int `json:"resCount"`
-		ExcCount  int `json:"excCount"`
-		ExcArea   int `json:"excArea"`
-		ArtiCount int `json:"artiCount"`
+		ResCount  int     `json:"resCount"`
+		ExcCount  int     `json:"excCount"`
+		ExcArea   float64 `json:"excArea"`
+		ArtiCount int     `json:"artiCount"`
 
-		Heritages []heritage `json:"heritages"`
+		Heritages []nHeritage `json:"heritages"`
 
 		LayersCount int     `json:"layersCount"`
 		LayersTop   []layer `json:"layersTop"`
 		LayersMid   []layer `json:"layersMid"`
 		LayersBot   []layer `json:"layersBot"`
 
-		Coords []siteCoords `json:"coords"`
-	}
-
-	heritage struct {
-		Name string `json:"name"`
-		ID   uint64 `json:"id"`
+		Coords []siteSpatialReferences `json:"coords"`
 	}
 
 	layer struct {
@@ -47,14 +42,11 @@ type (
 		Epoch   string `json:"epoch"`
 		Culture string `json:"culture"`
 	}
+)
 
-	siteCoords struct {
-		Date     uint64  `json:"date"`
-		Type     int     `json:"type"`
-		Accuracy int     `json:"accuracy"`
-		Points   []point `json:"points"`
-		// Actual   bool    `json:"actual"`
-	}
+const (
+	coordPoint = iota + 1
+	coordPolygon
 )
 
 const singleStatement = `
@@ -83,33 +75,50 @@ const singleStatement = `
 		COLLECT({date: sr.date, accuracy: srt.id, type: 1, points: [{x: sr.x, y: sr.y}]}) AS coords
 `
 
-func (db *DB) GetSite(id, lang string) ([]knowledge, error) {
-	// var dbResponse []singleSite
-	// cq := BuildCypherQuery(
-	// 	singleStatement,
-	// 	&dbResponse,
-	// 	neoism.Props{"id": id, "language": lang},
-	// )
-
-	// err := db.Cypher(&cq)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// dbg.Dump(dbResponse)
-
+func (db *DB) GetSite(id, lang string) (interface{}, error) {
 	idInt, _ := strconv.Atoi(id)
 	site := NewSite(uint64(idInt))
 
-	var knowledges []knowledge
+	var knowledges []siteNames
+	var spatials []siteSpatialReferences
+	var heritages []nHeritage
+	var tEpoch []nEpoch
+	var tSiteType []nSiteType
+	var cultures []cultureNames
+	var resCounts []researchCount
+	var excCounts []excCount
+	var artiCounts []artiCount
+
 	cqs := []*neoism.CypherQuery{
-		site.to(&knowledges, []string{"monument_name", "description"}),
+		site.to(&knowledges),
+		site.to(&spatials),
+		site.to(&heritages),
+		site.to(&tEpoch),
+		site.to(&tSiteType),
+		site.to(&cultures),
+		site.to(&resCounts),
+		site.to(&excCounts),
+		site.to(&artiCounts),
 	}
 
 	err := db.CypherBatch(cqs)
 	if err != nil {
 		return nil, err
 	}
-	return knowledges, nil //&dbResponse[0], nil
+
+	var response singleSite
+	response.Names = knowledges[0].Names
+	response.Coords = spatials
+	response.Heritages = heritages
+	response.Epoch = tEpoch[0].Name
+	response.Stype = tSiteType[0].Name
+	response.Cultures = cultures[0].Names
+	response.ResCount = resCounts[0].Count
+	response.ExcCount = excCounts[0].Count
+	response.ExcArea = excCounts[0].Area
+	response.ArtiCount = artiCounts[0].Count
+
+	return response, nil
 }
 
 //////////////////////

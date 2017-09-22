@@ -14,7 +14,7 @@ type (
 		Organizations(echo.Map) ([]organisation, error)
 		SiteTypes(echo.Map) ([]siteType, error)
 
-		GetSite(string, string) ([]knowledge, error)
+		GetSite(string, string) (interface{}, error)
 		Sites(echo.Map) ([]pluralSite, error)
 		Researches(echo.Map) ([]pluralResearch, error)
 	}

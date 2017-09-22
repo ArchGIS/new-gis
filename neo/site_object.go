@@ -24,93 +24,125 @@ func toString(props []string) string {
 	return strings.Join(projected, ",")
 }
 
-func (siteObj *site) to(result interface{}, props []string) *neoism.CypherQuery {
+func (siteObj *site) to(result interface{}) *neoism.CypherQuery {
 	var query string
-	var projection string
 
 	switch result.(type) {
-	case *[]knowledge:
-		query = siteToKnowledge
-		projection = toString(props)
+	case *[]siteNames:
+		query = fmt.Sprintf(siteToKnowledge, siteObj.ID)
+	case *[]siteSpatialReferences:
+		query = fmt.Sprintf(siteToSpatial, siteObj.ID)
+	case *[]nHeritage:
+		query = fmt.Sprintf(siteToHeritage, siteObj.ID)
+	case *[]nEpoch:
+		query = fmt.Sprintf(siteToEpoch, siteObj.ID, "en")
+	case *[]nSiteType:
+		query = fmt.Sprintf(siteToType, siteObj.ID, "en")
+	case *[]cultureNames:
+		query = fmt.Sprintf(siteToCultures, siteObj.ID, "en")
+	case *[]researchCount:
+		query = fmt.Sprintf(siteToResCount, siteObj.ID)
+	case *[]excCount:
+		query = fmt.Sprintf(siteToExcCount, siteObj.ID)
+	case *[]artiCount:
+		query = fmt.Sprintf(siteToArtiCount, siteObj.ID)
 	}
 	return &neoism.CypherQuery{
-		Statement: fmt.Sprintf(query, siteObj.ID, projection),
+		Statement: query,
 		Result:    result,
 	}
 }
 
-type knowledge struct {
-	ID   uint64    `json:"id"`
-	Data nodeProps `json:"data"`
+type siteNames struct {
+	Names []string `json:"names"`
 }
 
 const siteToKnowledge = `
-	MATCH (s:Monument {id: %d})<--(k:Knowledge)
-	RETURN
-		k.id as id,
-		k {%s} as data
+	MATCH (:Monument {id: %d})<--(k:Knowledge)
+	RETURN COLLECT(k.monument_name) as names
 `
 
-type spatialReference struct {
-	// ID   uint64    `json:"id"`
-	Data nodeProps `json:"data"`
+type siteSpatialReferences struct {
+	Date     uint64  `json:"date"`
+	Accuracy int     `json:"accuracy"`
+	Points   []point `json:"points"`
 }
 
 const siteToSpatial = `
-	MATCH (s:Monument {id: %d})-->(sp:SpatialReference)-->(spt:SpatialReferenceType)
+	MATCH (:Monument {id: %d})-->(sp:SpatialReference)-->(spt:SpatialReferenceType)
 	WITH sp, spt
-	ORDER BY srt.id ASC, sr.date DESC
-	RETURN {
-		x: sp.x,
-		y: sp.y,
-		accuracy: spt.id
-	} as data
+	ORDER BY spt.id ASC, sp.date DESC
+	RETURN
+		[{x: sp.x, y: sp.y}] as points,
+		spt.id as accuracy,
+		sp.date as date
 `
 
 type nSiteType struct {
-	ID   uint16 `json:"id"`
 	Name string `json:"name"`
 }
 
 const siteToType = `
-	MATCH (s:Monument {id: %d})-->(n:MonumentType)-[:translation {lang: "%s"}]->(tr:Translate)
-	RETURN
-		n.id as id,
-		tr.name as name
+	MATCH (:Monument {id: %d})-->(:MonumentType)-[:translation {lang: "%s"}]->(tr:Translate)
+	RETURN tr.name as name
 `
 
 type nEpoch struct {
-	ID   uint16 `json:"id"`
 	Name string `json:"name"`
 }
 
 const siteToEpoch = `
-	MATCH (s:Monument {id: %d})-->(n:Epoch)-[:translation {lang: "%s"}]->(tr:Translate)
-	RETURN
-		n.id as id,
-		tr.name as name
+	MATCH (:Monument {id: %d})-->(:Epoch)-[:translation {lang: "%s"}]->(tr:Translate)
+	RETURN tr.name as name
 `
 
-type excavation struct {
-	ID   uint64    `json:"id"`
-	Data nodeProps `json:"data"`
+type excCount struct {
+	Count int     `json:"count"`
+	Area  float64 `json:"area"`
 }
 
-const siteToExc = `
-	MATCH (s:Monument {id: %d})-->(n:Excavation)
+const siteToExcCount = `
+	MATCH (:Monument {id: %d})-->(n:Excavation)
 	RETURN
-		n.id as ID,
-		n {.name} as data
+		COUNT(n) as count,
+		SUM(n.area) as area
 `
 
 type nHeritage struct {
-	ID   uint64    `json:"id"`
-	Data nodeProps `json:"data"`
+	ID   uint64 `json:"id"`
+	Name string `json:"name"`
 }
 
 const siteToHeritage = `
-	MATCH (s:Monument {id: %d})<--(n:Heritage)
+	MATCH (:Monument {id: %d})<--(n:Heritage)
 	RETURN
-		n.id as ID,
-		n {.name} as data
+		n.id as id,
+		n.name as name
+`
+
+type cultureNames struct {
+	Names []string `json:"names"`
+}
+
+const siteToCultures = `
+	MATCH (:Monument {id: %d})<--(:Knowledge)-->(:Culture)-[:translation {lang: "%s"}]->(tr:Translate)
+	RETURN COLLECT(tr.name) as names
+`
+
+type researchCount struct {
+	Count int `json:"count"`
+}
+
+const siteToResCount = `
+	MATCH (:Monument {id: %d})<--(:Knowledge)<--(r:Research)
+	RETURN COUNT(r) as count
+`
+
+type artiCount struct {
+	Count int `json:"count"`
+}
+
+const siteToArtiCount = `
+	MATCH (:Monument {id: %d})-->(:Excavation)-->(a:Artifact)
+	RETURN COUNT(a) as count
 `
