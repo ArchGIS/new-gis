@@ -1,8 +1,11 @@
 package neo
 
-import "github.com/jmcvetta/neoism"
-import "fmt"
-import "strings"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/jmcvetta/neoism"
+)
 
 type (
 	site struct {
