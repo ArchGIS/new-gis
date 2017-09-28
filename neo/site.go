@@ -49,32 +49,6 @@ const (
 	coordPolygon
 )
 
-const singleStatement = `
-	MATCH (m:Monument {id: toInteger({id})})
-	MATCH (m)-->(ep:Epoch)
-	MATCH (m)-->(mt:MonumentType)
-	MATCH (m)<--(k:Knowledge)
-	MATCH (k)<--(r:Research)
-	MATCH (k)-->(c:Culture)-[:translation {lang: {language}}]->(tr:Translate)
-	OPTIONAL MATCH (r)-->(exc:Excavation)<--(m)
-	OPTIONAL MATCH (exc)-->(a:Artifact)
-	OPTIONAL MATCH (m)<--(h:Heritage)
-	OPTIONAL MATCH (m)-[:has]->(sr:SpatialReference)-[:has]->(srt:SpatialReferenceType)
-	WITH sr, srt, m, ep, mt, k, r, c, tr, exc, a, h
-	ORDER BY srt.id ASC, sr.date DESC
-	RETURN
-		COLLECT(k.monument_name) AS names,
-		ep.id AS epoch,
-		mt.id AS type,
-		COLLECT(tr.name) AS cultures,
-		COUNT(r) AS resCount,
-		COUNT(exc) AS excCount,
-		SUM(exc.area) AS excArea,
-		COUNT(a) AS artiCount,
-		COLLECT({name: h.name, id: h.id}) as heritages,
-		COLLECT({date: sr.date, accuracy: srt.id, type: 1, points: [{x: sr.x, y: sr.y}]}) AS coords
-`
-
 func (db *DB) GetSite(id, lang string) (interface{}, error) {
 	idInt, _ := strconv.Atoi(id)
 	site := NewSite(uint64(idInt))
