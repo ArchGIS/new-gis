@@ -20,7 +20,7 @@ func Organizations(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	orgs, err := Model.db.Organizations(gin.H{"name": req.Name})
+	orgs, err := db.Organizations(gin.H{"name": req.Name})
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 	}

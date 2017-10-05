@@ -23,7 +23,7 @@ func Cultures(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	cultures, err := Model.db.Cultures(gin.H{
+	cultures, err := db.Cultures(gin.H{
 		"lang": req.Lang,
 		"name": req.Name,
 	})

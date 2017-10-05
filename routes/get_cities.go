@@ -21,7 +21,7 @@ func Cities(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	cities, err := Model.db.Cities(gin.H{
+	cities, err := db.Cities(gin.H{
 		"lang": req.Lang,
 		"name": req.Name,
 	})

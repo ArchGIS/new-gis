@@ -14,7 +14,7 @@ func Epochs(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	epochs, err := Model.db.Epochs(gin.H{"lang": req.Lang})
+	epochs, err := db.Epochs(gin.H{"lang": req.Lang})
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 	}

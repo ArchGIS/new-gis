@@ -34,7 +34,7 @@ func Sites(c *gin.Context) {
 	// 	return NotValidQueryParameters
 	// }
 
-	sites, err := Model.db.Sites(gin.H{
+	sites, err := db.Sites(gin.H{
 		"name":   req.Name,
 		"epoch":  req.Epoch,
 		"type":   req.Type,
@@ -56,7 +56,7 @@ func SingleSite(c *gin.Context) {
 		lang = "en"
 	}
 
-	site, err := Model.db.GetSite(id, lang)
+	site, err := db.GetSite(id, lang)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 	}
@@ -72,7 +72,7 @@ func SiteResearches(c *gin.Context) {
 		lang = "en"
 	}
 
-	res, err := Model.db.QuerySiteResearches(id, lang)
+	res, err := db.QuerySiteResearches(id, lang)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 	}

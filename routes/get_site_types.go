@@ -14,7 +14,7 @@ func SiteTypes(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	siteTypes, err := Model.db.SiteTypes(gin.H{"lang": req.Lang})
+	siteTypes, err := db.SiteTypes(gin.H{"lang": req.Lang})
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 	}

@@ -32,7 +32,7 @@ func Researches(c *gin.Context) {
 	// 	return NotValidQueryParameters
 	// }
 
-	res, err := Model.db.Researches(gin.H{
+	res, err := db.Researches(gin.H{
 		"lang":   req.Lang,
 		"name":   req.Name,
 		"year":   req.Year,

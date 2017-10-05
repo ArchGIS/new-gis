@@ -8,7 +8,7 @@ import (
 
 // Count returns count of entities in DB
 func Count(c *gin.Context) {
-	counts, err := Model.db.Counts()
+	counts, err := db.Counts()
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 	}

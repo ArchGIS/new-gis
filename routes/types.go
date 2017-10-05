@@ -8,18 +8,18 @@ type (
 	}
 
 	Env struct {
-		db neo.DataStore
+		neo.DataStore
 	}
 )
 
-var Model *Env
+var db *Env
 
 func InitEnv(source string) error {
-	db, err := neo.InitDB(source)
+	dbInstance, err := neo.InitDB(source)
 	if err != nil {
 		return err
 	}
 
-	Model = &Env{db}
+	db = &Env{dbInstance}
 	return nil
 }
