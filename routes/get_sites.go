@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/gin-gonic/gin"
 )
 
 type (
@@ -17,24 +17,24 @@ type (
 )
 
 // Sites gets info about archeological sites
-func Sites(c echo.Context) (err error) {
-	req := &requestParams{
-		Name:   "",
-		Epoch:  0,
-		Type:   0,
-		Offset: 0,
-		Limit:  20,
+func Sites(c *gin.Context) {
+	req := requestParams{
+		// Name:   "",
+		// Epoch:  0,
+		// Type:   0,
+		// Offset: 0,
+		Limit: 20,
 	}
 
-	if err = c.Bind(req); err != nil {
-		return NotAllowedQueryParams
+	if err := c.Bind(&req); err != nil {
+		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	if err = c.Validate(req); err != nil {
-		return NotValidQueryParameters
-	}
+	// if err = c.Validate(req); err != nil {
+	// 	return NotValidQueryParameters
+	// }
 
-	sites, err := Model.db.Sites(echo.Map{
+	sites, err := Model.db.Sites(gin.H{
 		"name":   req.Name,
 		"epoch":  req.Epoch,
 		"type":   req.Type,
@@ -42,24 +42,40 @@ func Sites(c echo.Context) (err error) {
 		"limit":  req.Limit,
 	})
 	if err != nil {
-		return err
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"sites": sites})
+	c.JSON(http.StatusOK, gin.H{"sites": sites})
 }
 
 // SingleSite get info about single archaelogical site
-func SingleSite(c echo.Context) error {
+func SingleSite(c *gin.Context) {
 	id := c.Param("id")
-	lang := c.QueryParam("lang")
+	lang := c.Query("lang")
 	if lang == "" {
 		lang = "en"
 	}
 
 	site, err := Model.db.GetSite(id, lang)
 	if err != nil {
-		return err
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"site": site})
+	c.JSON(http.StatusOK, gin.H{"site": site})
+}
+
+// SiteResearches get researches related to site
+func SiteResearches(c *gin.Context) {
+	id := c.Param("id")
+	lang := c.Query("lang")
+	if lang == "" {
+		lang = "en"
+	}
+
+	res, err := Model.db.QuerySiteResearches(id, lang)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"site_researches": res})
 }

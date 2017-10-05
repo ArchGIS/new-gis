@@ -2,8 +2,8 @@ package neo
 
 import (
 	"github.com/ArchGIS/new-gis/cypher"
+	"github.com/gin-gonic/gin"
 	"github.com/jmcvetta/neoism"
-	"github.com/labstack/echo"
 )
 
 type Culture struct {
@@ -11,7 +11,7 @@ type Culture struct {
 	Name string `json:"name"`
 }
 
-func (db *DB) Cultures(req echo.Map) (cultures []Culture, err error) {
+func (db *DB) Cultures(req gin.H) (cultures []Culture, err error) {
 	cq := BuildCypherQuery(
 		cypher.Filter(cultureStatement, filterCulture(req)),
 		&cultures,
@@ -29,7 +29,7 @@ func (db *DB) Cultures(req echo.Map) (cultures []Culture, err error) {
 	return cultures, nil
 }
 
-func filterCulture(req echo.Map) (filter string) {
+func filterCulture(req gin.H) (filter string) {
 	if req["name"] != "" {
 		filter = "WHERE tr.name =~ {name}"
 	}

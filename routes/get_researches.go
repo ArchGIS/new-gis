@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ArchGIS/new-gis/neo"
-	"github.com/labstack/echo"
+	"github.com/gin-gonic/gin"
 )
 
 type resRequestParams struct {
@@ -15,24 +15,24 @@ type resRequestParams struct {
 	Limit  int    `query:"limit"`
 }
 
-func Researches(c echo.Context) (err error) {
-	req := &resRequestParams{
-		Lang:   "en",
-		Name:   "",
-		Year:   neo.MinInt,
-		Offset: 0,
-		Limit:  20,
+func Researches(c *gin.Context) {
+	req := resRequestParams{
+		Lang: "en",
+		// Name:   "",
+		Year: neo.MinInt,
+		// Offset: 0,
+		Limit: 20,
 	}
 
-	if err = c.Bind(req); err != nil {
-		return NotAllowedQueryParams
+	if err := c.Bind(&req); err != nil {
+		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	if err = c.Validate(req); err != nil {
-		return NotValidQueryParameters
-	}
+	// if err = c.Validate(req); err != nil {
+	// 	return NotValidQueryParameters
+	// }
 
-	res, err := Model.db.Researches(echo.Map{
+	res, err := Model.db.Researches(gin.H{
 		"lang":   req.Lang,
 		"name":   req.Name,
 		"year":   req.Year,
@@ -40,8 +40,8 @@ func Researches(c echo.Context) (err error) {
 		"limit":  req.Limit,
 	})
 	if err != nil {
-		return err
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"researches": res})
+	c.JSON(http.StatusOK, gin.H{"researches": res})
 }

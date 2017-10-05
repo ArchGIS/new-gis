@@ -3,21 +3,21 @@ package routes
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/gin-gonic/gin"
 )
 
 // SiteTypes return list with types of sites
-func SiteTypes(c echo.Context) (err error) {
-	req := &request{Lang: "en"}
+func SiteTypes(c *gin.Context) {
+	req := request{Lang: "en"}
 
-	if err = c.Bind(req); err != nil {
-		return NotAllowedQueryParams
+	if err := c.Bind(&req); err != nil {
+		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	siteTypes, err := Model.db.SiteTypes(echo.Map{"lang": req.Lang})
+	siteTypes, err := Model.db.SiteTypes(gin.H{"lang": req.Lang})
 	if err != nil {
-		return err
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"siteTypes": siteTypes})
+	c.JSON(http.StatusOK, gin.H{"siteTypes": siteTypes})
 }

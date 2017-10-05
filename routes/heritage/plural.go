@@ -6,8 +6,8 @@ import (
 	"github.com/ArchGIS/new-gis/cypher"
 	"github.com/ArchGIS/new-gis/neo"
 	"github.com/ArchGIS/new-gis/routes"
+	"github.com/gin-gonic/gin"
 	"github.com/jmcvetta/neoism"
-	"github.com/labstack/echo"
 )
 
 type (
@@ -52,17 +52,17 @@ const (
 )
 
 // Plural gets info about archeological sites
-func Plural(c echo.Context) error {
+func Plural(c *gin.Context) error {
 	heritages, err := queryHeritages(c)
 
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"heritages": heritages})
+	return c.JSON(http.StatusOK, gin.H{"heritages": heritages})
 }
 
-func queryHeritages(c echo.Context) (heritages []heritage, err error) {
+func queryHeritages(c *gin.Context) (heritages []heritage, err error) {
 	req := &requestParams{
 		Name:   "",
 		Offset: 0,

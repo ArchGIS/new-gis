@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/gin-gonic/gin"
 )
 
 type (
@@ -13,23 +13,23 @@ type (
 	}
 )
 
-func Cultures(c echo.Context) (err error) {
+func Cultures(c *gin.Context) {
 	req := &requestCulture{
 		Lang: "en",
 		Name: "",
 	}
 
-	if err = c.Bind(req); err != nil {
-		return NotAllowedQueryParams
+	if err := c.Bind(&req); err != nil {
+		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	cultures, err := Model.db.Cultures(echo.Map{
+	cultures, err := Model.db.Cultures(gin.H{
 		"lang": req.Lang,
 		"name": req.Name,
 	})
 	if err != nil {
-		return err
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"cultures": cultures})
+	c.JSON(http.StatusOK, gin.H{"cultures": cultures})
 }

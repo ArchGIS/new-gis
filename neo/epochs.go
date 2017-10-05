@@ -1,8 +1,8 @@
 package neo
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/jmcvetta/neoism"
-	"github.com/labstack/echo"
 )
 
 type epoch struct {
@@ -10,7 +10,7 @@ type epoch struct {
 	Name string `json:"name"`
 }
 
-func (db *DB) Epochs(req echo.Map) (epochs []epoch, err error) {
+func (db *DB) Epochs(req gin.H) (epochs []epoch, err error) {
 	cq := BuildCypherQuery(epochsStatement, &epochs, neoism.Props{"language": req["lang"]})
 
 	err = db.Cypher(&cq)

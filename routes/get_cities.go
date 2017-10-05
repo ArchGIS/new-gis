@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/gin-gonic/gin"
 )
 
 type CityRequest struct {
@@ -11,23 +11,23 @@ type CityRequest struct {
 	Name string `query:"name"`
 }
 
-func Cities(c echo.Context) (err error) {
-	req := &CityRequest{
+func Cities(c *gin.Context) {
+	req := CityRequest{
 		Lang: "en",
-		Name: "",
+		// Name: "",
 	}
 
-	if err = c.Bind(req); err != nil {
-		return NotAllowedQueryParams
+	if err := c.Bind(&req); err != nil {
+		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	cities, err := Model.db.Cities(echo.Map{
+	cities, err := Model.db.Cities(gin.H{
 		"lang": req.Lang,
 		"name": req.Name,
 	})
 	if err != nil {
-		return err
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"cities": cities})
+	c.JSON(http.StatusOK, gin.H{"cities": cities})
 }

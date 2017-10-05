@@ -1,22 +1,23 @@
 package neo
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/jmcvetta/neoism"
-	"github.com/labstack/echo"
 )
 
 type (
 	DataStore interface {
 		Counts() ([]NodesCounter, error)
-		Cities(echo.Map) ([]City, error)
-		Cultures(echo.Map) ([]Culture, error)
-		Epochs(echo.Map) ([]epoch, error)
-		Organizations(echo.Map) ([]organisation, error)
-		SiteTypes(echo.Map) ([]siteType, error)
+		Cities(gin.H) ([]City, error)
+		Cultures(gin.H) ([]Culture, error)
+		Epochs(gin.H) ([]epoch, error)
+		Organizations(gin.H) ([]organisation, error)
+		SiteTypes(gin.H) ([]siteType, error)
 
 		GetSite(string, string) (interface{}, error)
-		Sites(echo.Map) ([]pluralSite, error)
-		Researches(echo.Map) ([]pluralResearch, error)
+		QuerySiteResearches(id, lang string) (interface{}, error)
+		Sites(gin.H) ([]pluralSite, error)
+		Researches(gin.H) ([]pluralResearch, error)
 	}
 
 	DB struct {

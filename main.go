@@ -3,63 +3,58 @@ package main
 import (
 	"os"
 
-	validator "gopkg.in/go-playground/validator.v9"
-
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 
-	"github.com/ArchGIS/new-gis/assert"
 	middle "github.com/ArchGIS/new-gis/middlewares"
 	"github.com/ArchGIS/new-gis/routes"
 )
 
 func init() {
 	err := godotenv.Load()
-	assert.Nil(err)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
 	err := routes.InitEnv(os.Getenv("Neo4jHost"))
-	assert.Nil(err)
-	e := echo.New()
+	if err != nil {
+		panic(err)
+	}
 
-	e.Debug = true
+	r := gin.Default()
 
-	e.Validator = &CustomValidator{validator: validator.New()}
+	// e.Validator = &CustomValidator{validator: validator.New()}
 
-	e.Use(middle.AddOrigin())
-	e.Use(middle.HandleOptions())
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	r.Use(middle.AddOrigin())
+	r.Use(middle.HandleOptions())
 
-	e.Match(
-		[]string{"POST", "GET"},
-		"/login",
-		loginHandler,
-	)
+	r.Any("/login", loginHandler)
 
-	apiRouter := e.Group("/api")
-	apiRouter.Use(middleware.JWT([]byte(os.Getenv(authSecret))))
+	apiV1 := r.Group("/v1")
+	// apiV1.Use(middleware.JWT([]byte(os.Getenv(authSecret))))
+	{
+		apiV1.GET("/counts", routes.Count)
+		apiV1.GET("/epochs", routes.Epochs)
+		apiV1.GET("/site_types", routes.SiteTypes)
+		apiV1.GET("/cultures", routes.Cultures)
+		apiV1.GET("/cities", routes.Cities)
+		apiV1.GET("/organizations", routes.Organizations)
 
-	apiRouter.GET("/counts", routes.Count)
-	apiRouter.GET("/epochs", routes.Epochs)
-	apiRouter.GET("/site_types", routes.SiteTypes)
-	apiRouter.GET("/cultures", routes.Cultures)
-	apiRouter.GET("/cities", routes.Cities)
-	apiRouter.GET("/organizations", routes.Organizations)
+		apiV1.GET("/sites", routes.Sites)
+		// apiV1.GET("/researches", research.Plural)
+		// apiV1.GET("/authors", author.Plural)
+		// apiV1.GET("/reports", report.Plural)
+		// apiV1.GET("/heritages", heritage.Plural)
+		// apiV1.GET("/excavations", excavation.Plural)
+		// apiV1.GET("/radiocarbons", radiocarbon.Plural)
+		// apiV1.GET("/artifacts", artifact.Plural)
+		// apiV1.GET("/publications", publication.Plural)
 
-	apiRouter.GET("/sites", routes.Sites)
-	// apiRouter.GET("/researches", research.Plural)
-	// apiRouter.GET("/authors", author.Plural)
-	// apiRouter.GET("/reports", report.Plural)
-	// apiRouter.GET("/heritages", heritage.Plural)
-	// apiRouter.GET("/excavations", excavation.Plural)
-	// apiRouter.GET("/radiocarbons", radiocarbon.Plural)
-	// apiRouter.GET("/artifacts", artifact.Plural)
-	// apiRouter.GET("/publications", publication.Plural)
+		apiV1.GET("/site/:id", routes.SingleSite)
+		apiV1.GET("/site/:id/researches", routes.SiteResearches)
+	}
 
-	apiRouter.GET("/site/:id", routes.SingleSite)
-
-	e.Logger.Fatal(e.Start(":8181"))
+	r.Run(":8181")
 }

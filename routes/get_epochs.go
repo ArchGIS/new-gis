@@ -3,21 +3,21 @@ package routes
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/gin-gonic/gin"
 )
 
 // Epochs return list of epochs
-func Epochs(c echo.Context) (err error) {
-	req := &request{Lang: "en"}
+func Epochs(c *gin.Context) {
+	req := request{Lang: "en"}
 
-	if err = c.Bind(req); err != nil {
-		return NotAllowedQueryParams
+	if err := c.Bind(&req); err != nil {
+		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	epochs, err := Model.db.Epochs(echo.Map{"lang": req.Lang})
+	epochs, err := Model.db.Epochs(gin.H{"lang": req.Lang})
 	if err != nil {
-		return err
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"epochs": epochs})
+	c.JSON(http.StatusOK, gin.H{"epochs": epochs})
 }

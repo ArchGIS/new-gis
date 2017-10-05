@@ -1,8 +1,8 @@
 package neo
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/jmcvetta/neoism"
-	"github.com/labstack/echo"
 )
 
 type (
@@ -12,7 +12,7 @@ type (
 	}
 )
 
-func (db *DB) SiteTypes(req echo.Map) (siteTypes []siteType, err error) {
+func (db *DB) SiteTypes(req gin.H) (siteTypes []siteType, err error) {
 	cq := BuildCypherQuery(siteTypesStatement, &siteTypes, neoism.Props{"language": req["lang"]})
 
 	err = db.Cypher(&cq)

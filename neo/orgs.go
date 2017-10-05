@@ -2,8 +2,8 @@ package neo
 
 import (
 	"github.com/ArchGIS/new-gis/cypher"
+	"github.com/gin-gonic/gin"
 	"github.com/jmcvetta/neoism"
-	"github.com/labstack/echo"
 )
 
 type organisation struct {
@@ -11,7 +11,7 @@ type organisation struct {
 	Name string `json:"name"`
 }
 
-func (db *DB) Organizations(req echo.Map) (orgs []organisation, err error) {
+func (db *DB) Organizations(req gin.H) (orgs []organisation, err error) {
 	cq := BuildCypherQuery(
 		cypher.Filter(orgStatement, filterOrgs(req)),
 		&orgs,
@@ -26,7 +26,7 @@ func (db *DB) Organizations(req echo.Map) (orgs []organisation, err error) {
 	return orgs, nil
 }
 
-func filterOrgs(req echo.Map) (filter string) {
+func filterOrgs(req gin.H) (filter string) {
 	if req["name"] != "" {
 		filter = "WHERE n.name =~ {name}"
 	}

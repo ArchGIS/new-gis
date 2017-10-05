@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/gin-gonic/gin"
 )
 
 type (
@@ -12,17 +12,18 @@ type (
 	}
 )
 
-func Organizations(c echo.Context) (err error) {
-	req := &requestOrgs{Name: ""}
+func Organizations(c *gin.Context) {
+	// req := &requestOrgs{Name: ""}
+	var req requestOrgs
 
-	if err = c.Bind(req); err != nil {
-		return NotAllowedQueryParams
+	if err := c.Bind(&req); err != nil {
+		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
 
-	orgs, err := Model.db.Organizations(echo.Map{"name": req.Name})
+	orgs, err := Model.db.Organizations(gin.H{"name": req.Name})
 	if err != nil {
-		return err
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"orgs": orgs})
+	c.JSON(http.StatusOK, gin.H{"orgs": orgs})
 }

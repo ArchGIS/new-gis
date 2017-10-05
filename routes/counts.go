@@ -3,16 +3,15 @@ package routes
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/gin-gonic/gin"
 )
 
 // Count returns count of entities in DB
-func Count(c echo.Context) error {
+func Count(c *gin.Context) {
 	counts, err := Model.db.Counts()
-
 	if err != nil {
-		return err
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"counts": counts})
+	c.JSON(http.StatusOK, gin.H{"counts": counts})
 }

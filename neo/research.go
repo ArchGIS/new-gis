@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/ArchGIS/new-gis/cypher"
+	"github.com/gin-gonic/gin"
 	"github.com/jmcvetta/neoism"
-	"github.com/labstack/echo"
 )
 
 type (
@@ -52,7 +52,7 @@ const (
 	entity = "Research"
 )
 
-func (db *DB) Researches(req echo.Map) (res []pluralResearch, err error) {
+func (db *DB) Researches(req gin.H) (res []pluralResearch, err error) {
 	cq := BuildCypherQuery(
 		cypher.Filter(statement, researchFilterString(req)),
 		&res,
@@ -108,7 +108,7 @@ func (db *DB) Researches(req echo.Map) (res []pluralResearch, err error) {
 	return res, nil
 }
 
-func researchFilterString(reqParams echo.Map) string {
+func researchFilterString(reqParams gin.H) string {
 	var filter []string
 	var stmt string
 

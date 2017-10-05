@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/ArchGIS/new-gis/cypher"
+	"github.com/gin-gonic/gin"
 	"github.com/jmcvetta/neoism"
-	"github.com/labstack/echo"
 )
 
 //////////////////////
@@ -95,6 +95,14 @@ func (db *DB) GetSite(id, lang string) (interface{}, error) {
 	return response, nil
 }
 
+/*
+ * Site researches
+ */
+
+func (db *DB) QuerySiteResearches(id, lang string) (interface{}, error) {
+	return nil, nil
+}
+
 //////////////////////
 ////// Plural ////////
 //////////////////////
@@ -136,7 +144,7 @@ const (
 	monument = "Monument"
 )
 
-func (db *DB) Sites(req echo.Map) (sites []pluralSite, err error) {
+func (db *DB) Sites(req gin.H) (sites []pluralSite, err error) {
 	cq := BuildCypherQuery(
 		cypher.Filter(pluralstatement, siteFilterString(req)),
 		&sites,
@@ -181,7 +189,7 @@ func (db *DB) Sites(req echo.Map) (sites []pluralSite, err error) {
 	return sites, nil
 }
 
-func siteFilterString(reqParams echo.Map) string {
+func siteFilterString(reqParams gin.H) string {
 	var filter []string
 	var stmt string
 
