@@ -2,7 +2,6 @@ package neo
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/jmcvetta/neoism"
 )
@@ -17,14 +16,6 @@ type (
 
 func NewSite(id uint64) *site {
 	return &site{ID: id}
-}
-
-func toString(props []string) string {
-	projected := make([]string, len(props))
-	for i, v := range props {
-		projected[i] = "." + v
-	}
-	return strings.Join(projected, ",")
 }
 
 func (siteObj *site) to(result interface{}) *neoism.CypherQuery {
