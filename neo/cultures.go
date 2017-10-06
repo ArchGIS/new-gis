@@ -6,12 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Culture struct {
+type cultureProps struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-func (db *DB) Cultures(req gin.H) ([]Culture, error) {
+func (db *DB) Cultures(req gin.H) ([]cultureProps, error) {
 	rows, err := db.QueryNeo(
 		fmt.Sprintf(cultureStatement, filterCulture(req)),
 		gin.H{
@@ -29,9 +29,9 @@ func (db *DB) Cultures(req gin.H) ([]Culture, error) {
 		return nil, err
 	}
 
-	cultures := make([]Culture, len(data))
+	cultures := make([]cultureProps, len(data))
 	for i, row := range data {
-		cultures[i] = Culture{
+		cultures[i] = cultureProps{
 			ID:   row[0].(int64),
 			Name: row[1].(string),
 		}
