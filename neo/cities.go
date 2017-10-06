@@ -6,12 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type City struct {
+type cityProps struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-func (db *DB) Cities(req gin.H) ([]City, error) {
+func (db *DB) Cities(req gin.H) ([]cityProps, error) {
 	rows, err := db.QueryNeo(
 		fmt.Sprintf(cityStatement, filterCity(req)),
 		gin.H{
@@ -29,9 +29,9 @@ func (db *DB) Cities(req gin.H) ([]City, error) {
 		return nil, err
 	}
 
-	cities := make([]City, len(data))
+	cities := make([]cityProps, len(data))
 	for i, row := range data {
-		cities[i] = City{
+		cities[i] = cityProps{
 			ID:   row[0].(int64),
 			Name: row[1].(string),
 		}
