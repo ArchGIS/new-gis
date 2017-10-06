@@ -5,19 +5,34 @@ import (
 )
 
 type epoch struct {
-	ID   int    `json:"id"`
+	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-func (db *DB) Epochs(req gin.H) (epochs []epoch, err error) {
-	// cq := BuildCypherQuery(epochsStatement, &epochs, neoism.Props{"language": req["lang"]})
+func (db *DB) Epochs(req gin.H) ([]epoch, error) {
+	rows, err := db.QueryNeo(
+		epochsStatement,
+		gin.H{"language": req["lang"]},
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	// err = db.Cypher(&cq)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	data, _, err := rows.All()
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	epochs := make([]epoch, len(data))
+	for i, row := range data {
+		epochs[i] = epoch{
+			ID:   row[0].(int64),
+			Name: row[1].(string),
+		}
+	}
+
+	return epochs, nil
 }
 
 const (
