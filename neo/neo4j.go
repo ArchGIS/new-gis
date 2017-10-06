@@ -14,7 +14,7 @@ type (
 		Cultures(gin.H) ([]cultureProps, error)
 		Epochs(gin.H) ([]epochProps, error)
 		Organizations(gin.H) ([]organisationProps, error)
-		SiteTypes(gin.H) ([]siteType, error)
+		SiteTypes(gin.H) ([]siteTypeProps, error)
 
 		GetSite(string, string) (interface{}, error)
 		QuerySiteResearches(id, lang string) (interface{}, error)

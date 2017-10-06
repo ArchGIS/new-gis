@@ -5,21 +5,36 @@ import (
 )
 
 type (
-	siteType struct {
-		ID   int    `json:"id"`
+	siteTypeProps struct {
+		ID   int64  `json:"id"`
 		Name string `json:"name"`
 	}
 )
 
-func (db *DB) SiteTypes(req gin.H) (siteTypes []siteType, err error) {
-	// cq := BuildCypherQuery(siteTypesStatement, &siteTypes, neoism.Props{"language": req["lang"]})
+func (db *DB) SiteTypes(req gin.H) ([]siteTypeProps, error) {
+	rows, err := db.QueryNeo(
+		siteTypesStatement,
+		gin.H{"language": req["lang"]},
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	// err = db.Cypher(&cq)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	data, _, err := rows.All()
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	sTypes := make([]siteTypeProps, len(data))
+	for i, row := range data {
+		sTypes[i] = siteTypeProps{
+			ID:   row[0].(int64),
+			Name: row[1].(string),
+		}
+	}
+
+	return sTypes, nil
 }
 
 const (
