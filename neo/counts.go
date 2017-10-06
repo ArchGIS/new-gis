@@ -4,12 +4,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type NodesCounter struct {
+type nodesCounter struct {
 	Name  string `json:"name"`
 	Count int64  `json:"count"`
 }
 
-func (db *DB) Counts() ([]NodesCounter, error) {
+func (db *DB) Counts() ([]nodesCounter, error) {
 	rows, err := db.QueryNeo(statement, gin.H{})
 	if err != nil {
 		return nil, err
@@ -21,9 +21,9 @@ func (db *DB) Counts() ([]NodesCounter, error) {
 		return nil, err
 	}
 
-	counts := make([]NodesCounter, len(data))
+	counts := make([]nodesCounter, len(data))
 	for i, row := range data {
-		counts[i] = NodesCounter{
+		counts[i] = nodesCounter{
 			Name:  row[0].(string),
 			Count: row[1].(int64),
 		}
