@@ -9,10 +9,10 @@ import (
 
 type (
 	DataStore interface {
-		Counts() ([]NodesCounter, error)
-		Cities(gin.H) ([]City, error)
-		Cultures(gin.H) ([]Culture, error)
-		Epochs(gin.H) ([]epoch, error)
+		Counts() ([]nodesCounter, error)
+		Cities(gin.H) ([]cityProps, error)
+		Cultures(gin.H) ([]cultureProps, error)
+		Epochs(gin.H) ([]epochProps, error)
 		Organizations(gin.H) ([]organisation, error)
 		SiteTypes(gin.H) ([]siteType, error)
 
