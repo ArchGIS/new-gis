@@ -1,30 +1,43 @@
 package neo
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 )
 
 type Culture struct {
-	ID   uint64 `json:"id"`
+	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-func (db *DB) Cultures(req gin.H) (cultures []Culture, err error) {
-	// cq := BuildCypherQuery(
-	// 	cypher.Filter(cultureStatement, filterCulture(req)),
-	// 	&cultures,
-	// 	neoism.Props{
-	// 		"language": req["lang"],
-	// 		"name":     cypher.BuildRegexpFilter(req["name"]),
-	// 	},
-	// )
+func (db *DB) Cultures(req gin.H) ([]Culture, error) {
+	rows, err := db.QueryNeo(
+		fmt.Sprintf(cultureStatement, filterCulture(req)),
+		gin.H{
+			"language": req["lang"],
+			"name":     buildRegexpFilter(req["name"]),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	// err = db.Cypher(&cq)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	data, _, err := rows.All()
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	cultures := make([]Culture, len(data))
+	for i, row := range data {
+		cultures[i] = Culture{
+			ID:   row[0].(int64),
+			Name: row[1].(string),
+		}
+	}
+
+	return cultures, nil
 }
 
 func filterCulture(req gin.H) (filter string) {
