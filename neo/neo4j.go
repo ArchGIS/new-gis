@@ -1,6 +1,8 @@
 package neo
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	bolt "github.com/johnnadratowski/golang-neo4j-bolt-driver"
 )
@@ -33,4 +35,10 @@ func InitDB(source string) (*DB, error) {
 		return nil, err
 	}
 	return &DB{conn}, nil
+}
+
+// buildRegexpFilter return neo4j regexp filter
+// for case-insensitive text search
+func buildRegexpFilter(needle interface{}) string {
+	return fmt.Sprintf("(?ui).*%s.*$", needle)
 }

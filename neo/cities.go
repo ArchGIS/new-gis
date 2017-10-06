@@ -1,30 +1,43 @@
 package neo
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 )
 
 type City struct {
-	ID   uint64 `json:"id"`
+	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-func (db *DB) Cities(req gin.H) (cities []City, err error) {
-	// cq := BuildCypherQuery(
-	// 	cypher.Filter(cityStatement, filterCity(req)),
-	// 	&cities,
-	// 	neoism.Props{
-	// 		"language": req["lang"],
-	// 		"name":     cypher.BuildRegexpFilter(req["name"]),
-	// 	},
-	// )
+func (db *DB) Cities(req gin.H) ([]City, error) {
+	rows, err := db.QueryNeo(
+		fmt.Sprintf(cityStatement, filterCity(req)),
+		gin.H{
+			"language": req["lang"],
+			"name":     buildRegexpFilter(req["name"]),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	// err = db.Cypher(&cq)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	data, _, err := rows.All()
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	cities := make([]City, len(data))
+	for i, row := range data {
+		cities[i] = City{
+			ID:   row[0].(int64),
+			Name: row[1].(string),
+		}
+	}
+
+	return cities, nil
 }
 
 func filterCity(req gin.H) (filter string) {
