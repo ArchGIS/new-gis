@@ -13,7 +13,6 @@ type (
 )
 
 func Organizations(c *gin.Context) {
-	// req := &requestOrgs{Name: ""}
 	var req requestOrgs
 
 	if err := c.Bind(&req); err != nil {

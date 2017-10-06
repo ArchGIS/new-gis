@@ -13,7 +13,7 @@ type (
 		Cities(gin.H) ([]cityProps, error)
 		Cultures(gin.H) ([]cultureProps, error)
 		Epochs(gin.H) ([]epochProps, error)
-		Organizations(gin.H) ([]organisation, error)
+		Organizations(gin.H) ([]organisationProps, error)
 		SiteTypes(gin.H) ([]siteType, error)
 
 		GetSite(string, string) (interface{}, error)

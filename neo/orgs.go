@@ -1,27 +1,40 @@
 package neo
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 )
 
-type organisation struct {
-	ID   uint64 `json:"id"`
+type organisationProps struct {
+	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-func (db *DB) Organizations(req gin.H) (orgs []organisation, err error) {
-	// cq := BuildCypherQuery(
-	// 	cypher.Filter(orgStatement, filterOrgs(req)),
-	// 	&orgs,
-	// 	neoism.Props{"name": cypher.BuildRegexpFilter(req["name"])},
-	// )
+func (db *DB) Organizations(req gin.H) ([]organisationProps, error) {
+	rows, err := db.QueryNeo(
+		fmt.Sprintf(orgStatement, filterOrgs(req)),
+		gin.H{"name": req["name"]},
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	// err = db.Cypher(&cq)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	data, _, err := rows.All()
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	orgs := make([]organisationProps, len(data))
+	for i, row := range data {
+		orgs[i] = organisationProps{
+			ID:   row[0].(int64),
+			Name: row[1].(string),
+		}
+	}
+
+	return orgs, nil
 }
 
 func filterOrgs(req gin.H) (filter string) {
