@@ -12,10 +12,7 @@ type CityRequest struct {
 }
 
 func Cities(c *gin.Context) {
-	req := CityRequest{
-		Lang: "en",
-		// Name: "",
-	}
+	req := CityRequest{Lang: "en"}
 
 	if err := c.Bind(&req); err != nil {
 		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
