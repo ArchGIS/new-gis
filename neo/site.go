@@ -1,12 +1,9 @@
 package neo
 
 import (
-	"strconv"
 	"strings"
 
-	"github.com/ArchGIS/new-gis/cypher"
 	"github.com/gin-gonic/gin"
-	"github.com/jmcvetta/neoism"
 )
 
 //////////////////////
@@ -50,49 +47,49 @@ const (
 )
 
 func (db *DB) GetSite(id, lang string) (interface{}, error) {
-	idInt, _ := strconv.Atoi(id)
-	site := NewSite(uint64(idInt))
+	// idInt, _ := strconv.Atoi(id)
+	// site := NewSite(uint64(idInt))
 
-	var knowledges []siteNames
-	var spatials []siteSpatialReferences
-	var heritages []nHeritage
-	var tEpoch []nEpoch
-	var tSiteType []nSiteType
-	var cultures []cultureNames
-	var resCounts []researchCount
-	var excCounts []excCount
-	var artiCounts []artiCount
+	// var knowledges []siteNames
+	// var spatials []siteSpatialReferences
+	// var heritages []nHeritage
+	// var tEpoch []nEpoch
+	// var tSiteType []nSiteType
+	// var cultures []cultureNames
+	// var resCounts []researchCount
+	// var excCounts []excCount
+	// var artiCounts []artiCount
 
-	cqs := []*neoism.CypherQuery{
-		site.to(&knowledges),
-		site.to(&spatials),
-		site.to(&heritages),
-		site.to(&tEpoch),
-		site.to(&tSiteType),
-		site.to(&cultures),
-		site.to(&resCounts),
-		site.to(&excCounts),
-		site.to(&artiCounts),
-	}
+	// cqs := []*neoism.CypherQuery{
+	// 	site.to(&knowledges),
+	// 	site.to(&spatials),
+	// 	site.to(&heritages),
+	// 	site.to(&tEpoch),
+	// 	site.to(&tSiteType),
+	// 	site.to(&cultures),
+	// 	site.to(&resCounts),
+	// 	site.to(&excCounts),
+	// 	site.to(&artiCounts),
+	// }
 
-	err := db.CypherBatch(cqs)
-	if err != nil {
-		return nil, err
-	}
+	// err := db.CypherBatch(cqs)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	var response singleSite
-	response.Names = knowledges[0].Names
-	response.Coords = spatials
-	response.Heritages = heritages
-	response.Epoch = tEpoch[0].Name
-	response.Stype = tSiteType[0].Name
-	response.Cultures = cultures[0].Names
-	response.ResCount = resCounts[0].Count
-	response.ExcCount = excCounts[0].Count
-	response.ExcArea = excCounts[0].Area
-	response.ArtiCount = artiCounts[0].Count
+	// var response singleSite
+	// response.Names = knowledges[0].Names
+	// response.Coords = spatials
+	// response.Heritages = heritages
+	// response.Epoch = tEpoch[0].Name
+	// response.Stype = tSiteType[0].Name
+	// response.Cultures = cultures[0].Names
+	// response.ResCount = resCounts[0].Count
+	// response.ExcCount = excCounts[0].Count
+	// response.ExcArea = excCounts[0].Area
+	// response.ArtiCount = artiCounts[0].Count
 
-	return response, nil
+	return nil, nil
 }
 
 /*
@@ -145,48 +142,48 @@ const (
 )
 
 func (db *DB) Sites(req gin.H) (sites []pluralSite, err error) {
-	cq := BuildCypherQuery(
-		cypher.Filter(pluralstatement, siteFilterString(req)),
-		&sites,
-		neoism.Props{
-			"name":   cypher.BuildRegexpFilter(req["name"]),
-			"epoch":  req["epoch"],
-			"type":   req["type"],
-			"offset": req["offset"],
-			"limit":  req["limit"],
-		},
-	)
+	// cq := BuildCypherQuery(
+	// 	cypher.Filter(pluralstatement, siteFilterString(req)),
+	// 	&sites,
+	// 	neoism.Props{
+	// 		"name":   cypher.BuildRegexpFilter(req["name"]),
+	// 		"epoch":  req["epoch"],
+	// 		"type":   req["type"],
+	// 		"offset": req["offset"],
+	// 		"limit":  req["limit"],
+	// 	},
+	// )
 
-	err = db.Cypher(&cq)
-	if err != nil {
-		return nil, err
-	}
+	// err = db.Cypher(&cq)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	if len(sites) > 0 {
-		ids := make([]uint64, len(sites))
-		coords := make([]coordinates, len(sites))
+	// if len(sites) > 0 {
+	// 	ids := make([]uint64, len(sites))
+	// 	coords := make([]coordinates, len(sites))
 
-		for i, v := range sites {
-			ids[i] = v.ID
-		}
+	// 	for i, v := range sites {
+	// 		ids[i] = v.ID
+	// 	}
 
-		coordsCQ := BuildCypherQuery(
-			cypher.BuildCoordinates(ids, monument, false),
-			&coords,
-			neoism.Props{},
-		)
+	// 	coordsCQ := BuildCypherQuery(
+	// 		cypher.BuildCoordinates(ids, monument, false),
+	// 		&coords,
+	// 		neoism.Props{},
+	// 	)
 
-		err = db.Cypher(&coordsCQ)
-		if err != nil {
-			return nil, err
-		}
+	// 	err = db.Cypher(&coordsCQ)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		for i := range coords {
-			sites[i].Coords = coords[i]
-		}
-	}
+	// 	for i := range coords {
+	// 		sites[i].Coords = coords[i]
+	// 	}
+	// }
 
-	return sites, nil
+	return nil, nil
 }
 
 func siteFilterString(reqParams gin.H) string {

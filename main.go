@@ -18,7 +18,7 @@ func init() {
 }
 
 func main() {
-	err := routes.InitEnv(os.Getenv("Neo4jHost"))
+	err := routes.InitEnv(os.Getenv("Neo4jBolt"))
 	if err != nil {
 		panic(err)
 	}

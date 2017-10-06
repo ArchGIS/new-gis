@@ -1,18 +1,32 @@
 package neo
 
-import "github.com/jmcvetta/neoism"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 type NodesCounter struct {
 	Name  string `json:"name"`
-	Count int    `json:"count"`
+	Count int64  `json:"count"`
 }
 
-func (db *DB) Counts() (counts []NodesCounter, err error) {
-	cq := BuildCypherQuery(statement, &counts, neoism.Props{})
-
-	err = db.Cypher(&cq)
+func (db *DB) Counts() ([]NodesCounter, error) {
+	rows, err := db.QueryNeo(statement, gin.H{})
 	if err != nil {
 		return nil, err
+	}
+	defer rows.Close()
+
+	data, _, err := rows.All()
+	if err != nil {
+		return nil, err
+	}
+
+	counts := make([]NodesCounter, len(data))
+	for i, row := range data {
+		counts[i] = NodesCounter{
+			Name:  row[0].(string),
+			Count: row[1].(int64),
+		}
 	}
 
 	return counts, nil

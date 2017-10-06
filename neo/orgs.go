@@ -1,9 +1,7 @@
 package neo
 
 import (
-	"github.com/ArchGIS/new-gis/cypher"
 	"github.com/gin-gonic/gin"
-	"github.com/jmcvetta/neoism"
 )
 
 type organisation struct {
@@ -12,18 +10,18 @@ type organisation struct {
 }
 
 func (db *DB) Organizations(req gin.H) (orgs []organisation, err error) {
-	cq := BuildCypherQuery(
-		cypher.Filter(orgStatement, filterOrgs(req)),
-		&orgs,
-		neoism.Props{"name": cypher.BuildRegexpFilter(req["name"])},
-	)
+	// cq := BuildCypherQuery(
+	// 	cypher.Filter(orgStatement, filterOrgs(req)),
+	// 	&orgs,
+	// 	neoism.Props{"name": cypher.BuildRegexpFilter(req["name"])},
+	// )
 
-	err = db.Cypher(&cq)
-	if err != nil {
-		return nil, err
-	}
+	// err = db.Cypher(&cq)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return orgs, nil
+	return nil, nil
 }
 
 func filterOrgs(req gin.H) (filter string) {

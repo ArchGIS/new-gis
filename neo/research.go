@@ -3,9 +3,7 @@ package neo
 import (
 	"strings"
 
-	"github.com/ArchGIS/new-gis/cypher"
 	"github.com/gin-gonic/gin"
-	"github.com/jmcvetta/neoism"
 )
 
 type (
@@ -53,59 +51,59 @@ const (
 )
 
 func (db *DB) Researches(req gin.H) (res []pluralResearch, err error) {
-	cq := BuildCypherQuery(
-		cypher.Filter(statement, researchFilterString(req)),
-		&res,
-		neoism.Props{
-			"language": req["lang"],
-			"name":     cypher.BuildRegexpFilter(req["name"]),
-			"year":     req["year"],
-			"offset":   req["offset"],
-			"limit":    req["limit"],
-		},
-	)
+	// cq := BuildCypherQuery(
+	// 	cypher.Filter(statement, researchFilterString(req)),
+	// 	&res,
+	// 	neoism.Props{
+	// 		"language": req["lang"],
+	// 		"name":     cypher.BuildRegexpFilter(req["name"]),
+	// 		"year":     req["year"],
+	// 		"offset":   req["offset"],
+	// 		"limit":    req["limit"],
+	// 	},
+	// )
 
-	err = db.Cypher(&cq)
-	if err != nil {
-		return nil, err
-	}
+	// err = db.Cypher(&cq)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	if len(res) > 0 {
-		ids := make([]uint64, len(res))
-		for i, v := range res {
-			ids[i] = v.ID
-		}
+	// if len(res) > 0 {
+	// 	ids := make([]uint64, len(res))
+	// 	for i, v := range res {
+	// 		ids[i] = v.ID
+	// 	}
 
-		listResearchSites := []cypher.ListIdsOfSites{}
-		cq = BuildCypherQuery(
-			cypher.IdsOfResearchSites(ids),
-			&listResearchSites,
-			neoism.Props{},
-		)
-		err = db.Cypher(&cq)
-		if err != nil {
-			return nil, err
-		}
+	// 	listResearchSites := []cypher.ListIdsOfSites{}
+	// 	cq = BuildCypherQuery(
+	// 		cypher.IdsOfResearchSites(ids),
+	// 		&listResearchSites,
+	// 		neoism.Props{},
+	// 	)
+	// 	err = db.Cypher(&cq)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		coords := make([]resCoord, len(res))
+	// 	coords := make([]resCoord, len(res))
 
-		coordsCQ := BuildCypherQuery(
-			cypher.ResearchCoords(listResearchSites),
-			&coords,
-			neoism.Props{},
-		)
+	// 	coordsCQ := BuildCypherQuery(
+	// 		cypher.ResearchCoords(listResearchSites),
+	// 		&coords,
+	// 		neoism.Props{},
+	// 	)
 
-		err = db.Cypher(&coordsCQ)
-		if err != nil {
-			return nil, err
-		}
+	// 	err = db.Cypher(&coordsCQ)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		for i := range coords {
-			res[i].Coords = coords[i].Rows
-		}
-	}
+	// 	for i := range coords {
+	// 		res[i].Coords = coords[i].Rows
+	// 	}
+	// }
 
-	return res, nil
+	return nil, nil
 }
 
 func researchFilterString(reqParams gin.H) string {

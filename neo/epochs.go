@@ -2,7 +2,6 @@ package neo
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/jmcvetta/neoism"
 )
 
 type epoch struct {
@@ -11,14 +10,14 @@ type epoch struct {
 }
 
 func (db *DB) Epochs(req gin.H) (epochs []epoch, err error) {
-	cq := BuildCypherQuery(epochsStatement, &epochs, neoism.Props{"language": req["lang"]})
+	// cq := BuildCypherQuery(epochsStatement, &epochs, neoism.Props{"language": req["lang"]})
 
-	err = db.Cypher(&cq)
-	if err != nil {
-		return nil, err
-	}
+	// err = db.Cypher(&cq)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return epochs, nil
+	return nil, nil
 }
 
 const (

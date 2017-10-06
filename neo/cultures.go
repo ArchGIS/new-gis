@@ -1,9 +1,7 @@
 package neo
 
 import (
-	"github.com/ArchGIS/new-gis/cypher"
 	"github.com/gin-gonic/gin"
-	"github.com/jmcvetta/neoism"
 )
 
 type Culture struct {
@@ -12,21 +10,21 @@ type Culture struct {
 }
 
 func (db *DB) Cultures(req gin.H) (cultures []Culture, err error) {
-	cq := BuildCypherQuery(
-		cypher.Filter(cultureStatement, filterCulture(req)),
-		&cultures,
-		neoism.Props{
-			"language": req["lang"],
-			"name":     cypher.BuildRegexpFilter(req["name"]),
-		},
-	)
+	// cq := BuildCypherQuery(
+	// 	cypher.Filter(cultureStatement, filterCulture(req)),
+	// 	&cultures,
+	// 	neoism.Props{
+	// 		"language": req["lang"],
+	// 		"name":     cypher.BuildRegexpFilter(req["name"]),
+	// 	},
+	// )
 
-	err = db.Cypher(&cq)
-	if err != nil {
-		return nil, err
-	}
+	// err = db.Cypher(&cq)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return cultures, nil
+	return nil, nil
 }
 
 func filterCulture(req gin.H) (filter string) {

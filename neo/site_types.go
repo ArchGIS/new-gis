@@ -2,7 +2,6 @@ package neo
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/jmcvetta/neoism"
 )
 
 type (
@@ -13,14 +12,14 @@ type (
 )
 
 func (db *DB) SiteTypes(req gin.H) (siteTypes []siteType, err error) {
-	cq := BuildCypherQuery(siteTypesStatement, &siteTypes, neoism.Props{"language": req["lang"]})
+	// cq := BuildCypherQuery(siteTypesStatement, &siteTypes, neoism.Props{"language": req["lang"]})
 
-	err = db.Cypher(&cq)
-	if err != nil {
-		return nil, err
-	}
+	// err = db.Cypher(&cq)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return siteTypes, nil
+	return nil, nil
 }
 
 const (

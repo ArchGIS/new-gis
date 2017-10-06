@@ -2,7 +2,7 @@ package neo
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/jmcvetta/neoism"
+	bolt "github.com/johnnadratowski/golang-neo4j-bolt-driver"
 )
 
 type (
@@ -21,26 +21,16 @@ type (
 	}
 
 	DB struct {
-		*neoism.Database
+		bolt.Conn
 	}
 )
 
 // InitDB connecting to Neoj
 func InitDB(source string) (*DB, error) {
-	// neoHost := os.Getenv("Neo4jHost")
-	db, err := neoism.Connect(source)
+	driver := bolt.NewDriver()
+	conn, err := driver.OpenNeo(source)
 	if err != nil {
 		return nil, err
 	}
-
-	return &DB{db}, nil
-}
-
-// BuildCypherQuery return neoism library struct for quering Neo4j
-func BuildCypherQuery(stmt string, dst interface{}, props neoism.Props) neoism.CypherQuery {
-	return neoism.CypherQuery{
-		Statement:  stmt,
-		Result:     dst,
-		Parameters: props,
-	}
+	return &DB{conn}, nil
 }
