@@ -14,7 +14,7 @@ type (
 )
 
 func Cultures(c *gin.Context) {
-	req := &requestCulture{Lang: "en"}
+	req := requestCulture{Lang: "en"}
 
 	if err := c.Bind(&req); err != nil {
 		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
