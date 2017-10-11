@@ -1,6 +1,9 @@
 package neo
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -105,17 +108,22 @@ func (db *DB) QuerySiteResearches(id, lang string) (interface{}, error) {
 //////////////////////
 
 type (
-	siteItem struct {
-		Name     []string `json:"site_name"`
-		ResName  []string `json:"research_name"`
-		Epoch    int      `json:"epoch"`
-		SiteType int      `json:"type"`
+	pluralSite struct {
+		ID     int64    `json:"id"`
+		Item   siteItem `json:"item"`
+		Coords coordsT  `json:"coordinates"`
 	}
 
-	pluralSite struct {
-		ID     uint64      `json:"id"`
-		Item   item        `json:"item"`
-		Coords coordinates `json:"coordinates"`
+	siteItem struct {
+		Names    interface{} `json:"site_names"`
+		ResNames interface{} `json:"research_names"`
+		Epoch    int64       `json:"epoch"`
+		SiteType int64       `json:"type"`
+	}
+
+	coordsT struct {
+		X interface{} `json:"x"`
+		Y interface{} `json:"y"`
 	}
 )
 
@@ -128,62 +136,91 @@ const (
 		%s
 		WITH
 			s.id as id,
-			{
-				site_name: collect(k.monument_name),
-				research_name: collect(r.name),
-				epoch: e.id,
-				type: st.id
-			} as item
-    RETURN id, item
+			collect(k.monument_name) as site_name,
+			collect(r.name) as research_name,
+			e.id as epoch,
+			st.id as type
+    RETURN id, site_name, research_name, epoch, type
     SKIP {offset} LIMIT {limit}
 	`
 
 	monument = "Monument"
 )
 
-func (db *DB) Sites(req gin.H) (sites []pluralSite, err error) {
-	// cq := BuildCypherQuery(
-	// 	cypher.Filter(pluralstatement, siteFilterString(req)),
-	// 	&sites,
-	// 	neoism.Props{
-	// 		"name":   cypher.BuildRegexpFilter(req["name"]),
-	// 		"epoch":  req["epoch"],
-	// 		"type":   req["type"],
-	// 		"offset": req["offset"],
-	// 		"limit":  req["limit"],
-	// 	},
-	// )
+func idsForQueriengCoordinates(ids []int64) gin.H {
+	params := make(gin.H)
+	for i, v := range ids {
+		params["id"+strconv.Itoa(i)] = v
+	}
 
-	// err = db.Cypher(&cq)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	return params
+}
 
-	// if len(sites) > 0 {
-	// 	ids := make([]uint64, len(sites))
-	// 	coords := make([]coordinates, len(sites))
+func (db *DB) Sites(req gin.H) ([]pluralSite, error) {
+	rows, err := db.QueryNeo(
+		fmt.Sprintf(pluralstatement, siteFilterString(req)),
+		gin.H{
+			"name":   buildRegexpFilter(req["name"]),
+			"epoch":  req["epoch"],
+			"type":   req["type"],
+			"offset": req["offset"],
+			"limit":  req["limit"],
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("could not query in neo4j: %v", err)
+	}
 
-	// 	for i, v := range sites {
-	// 		ids[i] = v.ID
-	// 	}
+	var sites []pluralSite
+	var ids []int64
+	for err == nil {
+		var row []interface{}
+		row, _, err = rows.NextNeo()
+		if err != nil && err != io.EOF {
+			return nil, fmt.Errorf("didn't get rows: %v", err)
+		} else if err == io.EOF {
+			continue
+		}
 
-	// 	coordsCQ := BuildCypherQuery(
-	// 		cypher.BuildCoordinates(ids, monument, false),
-	// 		&coords,
-	// 		neoism.Props{},
-	// 	)
+		sites = append(sites, pluralSite{
+			ID: row[0].(int64),
+			Item: siteItem{
+				Names:    row[1],
+				ResNames: row[2],
+				Epoch:    row[3].(int64),
+				SiteType: row[4].(int64),
+			},
+		})
+		ids = append(ids, row[0].(int64))
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, fmt.Errorf("error when closing statement: %v", err)
+	}
 
-	// 	err = db.Cypher(&coordsCQ)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	preStmt := actualCoordinates(len(ids), monument)
+	coordRows, err := db.QueryNeo(preStmt, idsForQueriengCoordinates(ids))
+	if err != nil {
+		return nil, fmt.Errorf("could not query in neo4j: %v", err)
+	}
+	defer func() {
+		err = coordRows.Close()
+		if err != nil {
+			fmt.Printf("closing coordinates statement failed: %v", err)
+		}
+	}()
 
-	// 	for i := range coords {
-	// 		sites[i].Coords = coords[i]
-	// 	}
-	// }
+	coords, _, err := coordRows.All()
+	if err != nil {
+		return nil, fmt.Errorf("could not get rows of data: %v", err)
+	}
 
-	return nil, nil
+	for i := range sites {
+		sites[i].Coords.X = coords[i][0]
+		sites[i].Coords.Y = coords[i][1]
+	}
+
+	return sites, nil
 }
 
 func siteFilterString(reqParams gin.H) string {

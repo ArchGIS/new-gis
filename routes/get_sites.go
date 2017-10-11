@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -8,7 +9,7 @@ import (
 
 type (
 	requestParams struct {
-		Name   string `query:"site_name"`
+		Name   string `query:"name"`
 		Epoch  int    `query:"epoch_id" validate:"min=0,max=8"`
 		Type   int    `query:"type_id" validate:"min=0,max=12"`
 		Offset int    `query:"offset"`
@@ -18,21 +19,11 @@ type (
 
 // Sites gets info about archeological sites
 func Sites(c *gin.Context) {
-	req := requestParams{
-		// Name:   "",
-		// Epoch:  0,
-		// Type:   0,
-		// Offset: 0,
-		Limit: 20,
-	}
+	req := requestParams{Limit: 20}
 
 	if err := c.Bind(&req); err != nil {
 		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
 	}
-
-	// if err = c.Validate(req); err != nil {
-	// 	return NotValidQueryParameters
-	// }
 
 	sites, err := db.Sites(gin.H{
 		"name":   req.Name,
@@ -42,7 +33,9 @@ func Sites(c *gin.Context) {
 		"limit":  req.Limit,
 	})
 	if err != nil {
+		log.Print(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"sites": sites})
