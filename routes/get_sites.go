@@ -9,11 +9,11 @@ import (
 
 type (
 	requestParams struct {
-		Name   string `query:"name"`
-		Epoch  int    `query:"epoch_id" validate:"min=0,max=8"`
-		Type   int    `query:"type_id" validate:"min=0,max=12"`
-		Offset int    `query:"offset"`
-		Limit  int    `query:"limit"`
+		Name   string `form:"name"`
+		Epoch  int    `form:"epoch_id"`
+		Type   int    `form:"type_id"`
+		Offset int    `form:"offset"`
+		Limit  int    `form:"limit"`
 	}
 )
 
