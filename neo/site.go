@@ -3,6 +3,7 @@ package neo
 import (
 	"fmt"
 	"io"
+	"log"
 	"strconv"
 	"strings"
 
@@ -15,11 +16,11 @@ import (
 
 type (
 	singleSite struct {
-		Name     string   `json:"name"`
-		Names    []string `json:"names"`
-		Epoch    string   `json:"epoch"`
-		Stype    string   `json:"type"`
-		Cultures []string `json:"cultures"`
+		Name     string      `json:"name"`
+		Names    interface{} `json:"names"`
+		Epoch    string      `json:"epoch"`
+		Stype    string      `json:"type"`
+		Cultures []string    `json:"cultures"`
 
 		ResCount  int     `json:"resCount"`
 		ExcCount  int     `json:"excCount"`
@@ -42,6 +43,13 @@ type (
 		Epoch   string `json:"epoch"`
 		Culture string `json:"culture"`
 	}
+
+	siteSpatialReferences struct {
+		Date     int64   `json:"date"`
+		Accuracy int64   `json:"accuracy"`
+		X        float64 `json:"x"`
+		Y        float64 `json:"y"`
+	}
 )
 
 const (
@@ -49,50 +57,109 @@ const (
 	coordPolygon
 )
 
-func (db *DB) GetSite(id, lang string) (interface{}, error) {
-	// idInt, _ := strconv.Atoi(id)
-	// site := NewSite(uint64(idInt))
+func (db *DB) GetSite(id int64, lang string) (interface{}, error) {
+	params := gin.H{
+		"id":   id,
+		"lang": lang,
+	}
+	queries := []string{
+		`MATCH (:Monument {id: {id}})<--(k:Knowledge)
+		RETURN COLLECT(k.monument_name) as names`,
 
-	// var knowledges []siteNames
-	// var spatials []siteSpatialReferences
-	// var heritages []nHeritage
-	// var tEpoch []nEpoch
-	// var tSiteType []nSiteType
-	// var cultures []cultureNames
-	// var resCounts []researchCount
-	// var excCounts []excCount
-	// var artiCounts []artiCount
+		`MATCH (:Monument {id: {id}})-->(sp:SpatialReference)-->(spt:SpatialReferenceType)
+		WITH sp, spt
+		ORDER BY spt.id ASC, sp.date DESC
+		RETURN
+			sp.x as x,
+			sp.y as y,
+			spt.id as accuracy,
+			sp.date as date`,
 
-	// cqs := []*neoism.CypherQuery{
-	// 	site.to(&knowledges),
-	// 	site.to(&spatials),
-	// 	site.to(&heritages),
-	// 	site.to(&tEpoch),
-	// 	site.to(&tSiteType),
-	// 	site.to(&cultures),
-	// 	site.to(&resCounts),
-	// 	site.to(&excCounts),
-	// 	site.to(&artiCounts),
-	// }
+		`MATCH (:Monument {id: {id}})-->(:MonumentType)-[:translation {lang: {lang}}]->(tr:Translate)
+		RETURN tr.name as name`,
 
-	// err := db.CypherBatch(cqs)
-	// if err != nil {
-	// 	return nil, err
-	// }
+		`MATCH (:Monument {id: {id}})-->(:Epoch)-[:translation {lang: {lang}}]->(tr:Translate)
+		RETURN tr.name as name`,
 
-	// var response singleSite
-	// response.Names = knowledges[0].Names
-	// response.Coords = spatials
-	// response.Heritages = heritages
-	// response.Epoch = tEpoch[0].Name
-	// response.Stype = tSiteType[0].Name
-	// response.Cultures = cultures[0].Names
-	// response.ResCount = resCounts[0].Count
-	// response.ExcCount = excCounts[0].Count
-	// response.ExcArea = excCounts[0].Area
-	// response.ArtiCount = artiCounts[0].Count
+		`MATCH (:Monument {id: {id}})-->(e:Excavation)
+		OPTIONAL MATCH (e)-->(a:Artifact)
+		RETURN
+			COUNT(e) as excLength,
+			SUM(e.area) as excArea,
+			COUNT(a) as artiLength`,
 
-	return nil, nil
+		`MATCH (:Monument {id: {id}})<--(n:Heritage)
+		RETURN
+			n.id as id,
+			n.name as name`,
+
+		`MATCH (:Monument {id: {id}})<--(:Knowledge)-->(:Culture)-[:translation {lang: {lang}}]->(tr:Translate)
+		RETURN COLLECT(tr.name) as names`,
+
+		`MATCH (:Monument {id: {id}})<--(:Knowledge)<--(r:Research)
+		RETURN COUNT(r) as count`,
+	}
+
+	pipeline, err := db.PreparePipeline(queries...)
+	if err != nil {
+		return nil, fmt.Errorf("preparing pipeline failed: %v", err)
+	}
+
+	pipeRows, err := pipeline.QueryPipeline(params, params, params, params, params, params, params, params)
+	if err != nil {
+		return nil, fmt.Errorf("query pipeline failed: %v", err)
+	}
+
+	names, _, _, err := pipeRows.NextPipeline()
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get row from pipeline: %v", err)
+	}
+
+	var resp singleSite
+	resp.Names = names[0]
+
+	_, _, pipeRows, err = pipeRows.NextPipeline()
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get end of the row from pipeline: %v", err)
+	}
+
+	for {
+		sp, _, ref, err := pipeRows.NextPipeline()
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get row from pipeline: %v", err)
+		}
+		log.Printf("coord: %#v | ref: %#v", sp, ref)
+		if ref == nil {
+			resp.Coords = append(resp.Coords, siteSpatialReferences{
+				X:        sp[0].(float64),
+				Y:        sp[1].(float64),
+				Accuracy: sp[2].(int64),
+				Date:     sp[3].(int64),
+			})
+		} else {
+			pipeRows = ref
+			break
+		}
+	}
+
+	siteType, _, ref, err := pipeRows.NextPipeline()
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get row from pipeline: %v", err)
+	}
+	log.Printf("siteType: %#v | ref: %#v", siteType, ref)
+
+	resp.Stype = siteType[0].(string)
+	_, _, pipeRows, err = pipeRows.NextPipeline()
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get end of the row from pipeline: %v", err)
+	}
+
+	err = pipeline.Close()
+	if err != nil {
+		return nil, fmt.Errorf("error when closing pipeline: %v", err)
+	}
+
+	return resp, nil
 }
 
 /*

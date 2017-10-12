@@ -3,6 +3,7 @@ package routes
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,15 +44,25 @@ func Sites(c *gin.Context) {
 
 // SingleSite get info about single archaelogical site
 func SingleSite(c *gin.Context) {
-	id := c.Param("id")
+	sID := c.Param("id")
+	ID, err := strconv.Atoi(sID)
+	if err != nil {
+		log.Printf("couldn't convert id to integer: %v", err)
+		c.AbortWithError(http.StatusNotAcceptable, err)
+		return
+	}
 	lang := c.Query("lang")
-	if lang == "" {
-		lang = "en"
+	if lang != "" && (lang != "ru" || lang != "en") {
+		log.Printf("wrong lang: %v", lang)
+		c.AbortWithStatus(http.StatusNotAcceptable)
+		return
 	}
 
-	site, err := db.GetSite(id, lang)
+	site, err := db.GetSite(int64(ID), lang)
 	if err != nil {
+		log.Printf("error: %v", err)
 		c.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"site": site})

@@ -56,11 +56,11 @@ const siteToKnowledge = `
 	RETURN COLLECT(k.monument_name) as names
 `
 
-type siteSpatialReferences struct {
-	Date     uint64  `json:"date"`
-	Accuracy int     `json:"accuracy"`
-	Points   []point `json:"points"`
-}
+// type siteSpatialReferences struct {
+// 	Date     uint64  `json:"date"`
+// 	Accuracy int     `json:"accuracy"`
+// 	Points   []point `json:"points"`
+// }
 
 const siteToSpatial = `
 	MATCH (:Monument {id: %d})-->(sp:SpatialReference)-->(spt:SpatialReferenceType)

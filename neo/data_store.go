@@ -20,7 +20,7 @@ type (
 		Sites(gin.H) ([]pluralSite, error)
 		Researches(gin.H) ([]pluralResearch, error)
 
-		GetSite(string, string) (interface{}, error)
+		GetSite(int64, string) (interface{}, error)
 		QuerySiteResearches(id, lang string) (interface{}, error)
 	}
 
