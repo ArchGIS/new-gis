@@ -4,45 +4,53 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gin-gonic/gin"
-	bolt "github.com/johnnadratowski/golang-neo4j-bolt-driver"
+	"database/sql"
+
+	_ "github.com/johnnadratowski/golang-neo4j-bolt-driver"
 )
 
 type (
 	DataStore interface {
-		Counts() ([]nodesCounter, error)
-		Cities(gin.H) ([]cityProps, error)
-		Cultures(gin.H) ([]cultureProps, error)
-		Epochs(gin.H) ([]epochProps, error)
-		Organizations(gin.H) ([]organisationProps, error)
-		SiteTypes(gin.H) ([]siteTypeProps, error)
+		Counts() ([]*nodesCounter, error)
+		Cities(map[string]interface{}) ([]*cityProps, error)
+		// Cultures(gin.H) ([]cultureProps, error)
+		// Epochs(gin.H) ([]epochProps, error)
+		// Organizations(gin.H) ([]organisationProps, error)
+		// SiteTypes(gin.H) ([]siteTypeProps, error)
 
-		Sites(gin.H) ([]pluralSite, error)
-		Researches(gin.H) ([]pluralResearch, error)
+		// Sites(gin.H) ([]pluralSite, error)
+		// Researches(gin.H) ([]pluralResearch, error)
 
-		GetSite(int64, string) (interface{}, error)
-		QuerySiteResearches(id, lang string) (interface{}, error)
+		// GetSite(int64, string) (interface{}, error)
+		// QuerySiteResearches(id, lang string) (interface{}, error)
 	}
 
 	DB struct {
-		bolt.Conn
+		*sql.DB
 	}
 )
 
 // InitDB connecting to Neoj
 func InitDB(source string) (*DB, error) {
-	driver := bolt.NewDriver()
-	conn, err := driver.OpenNeo(source)
+	db, err := sql.Open("neo4j-bolt", source)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can not open db connection: %v", err)
 	}
-	return &DB{conn}, nil
+
+	err = db.Ping()
+	if err != nil {
+		return nil, fmt.Errorf("can not initialize db with ping: %v", err)
+	}
+
+	return &DB{db}, nil
 }
 
 // buildRegexpFilter return neo4j regexp filter
 // for case-insensitive text search
-func buildRegexpFilter(needle interface{}) string {
-	return fmt.Sprintf("(?ui).*%s.*$", needle)
+func addRegexpFilter(par map[string]interface{}, keys []string) {
+	for _, v := range keys {
+		par[v] = fmt.Sprintf("(?ui).*%s.*$", par[v].(string))
+	}
 }
 
 // BuildCoordinates generates cypher query for searching actual coordinate

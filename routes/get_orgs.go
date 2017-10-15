@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,16 +11,16 @@ type (
 )
 
 func Organizations(c *gin.Context) {
-	var req requestOrgs
+	// var req requestOrgs
 
-	if err := c.Bind(&req); err != nil {
-		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
-	}
+	// if err := c.Bind(&req); err != nil {
+	// 	c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
+	// }
 
-	orgs, err := db.Organizations(gin.H{"name": req.Name})
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-	}
+	// orgs, err := db.Organizations(gin.H{"name": req.Name})
+	// if err != nil {
+	// 	c.AbortWithStatus(http.StatusInternalServerError)
+	// }
 
-	c.JSON(http.StatusOK, gin.H{"orgs": orgs})
+	// c.JSON(http.StatusOK, gin.H{"orgs": orgs})
 }

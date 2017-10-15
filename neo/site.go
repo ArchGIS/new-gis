@@ -1,9 +1,6 @@
 package neo
 
 import (
-	"fmt"
-	"io"
-	"log"
 	"strconv"
 	"strings"
 
@@ -19,7 +16,7 @@ type (
 		Name     string      `json:"name"`
 		Names    interface{} `json:"names"`
 		Epoch    string      `json:"epoch"`
-		Stype    string      `json:"type"`
+		Stype    interface{} `json:"type"`
 		Cultures []string    `json:"cultures"`
 
 		ResCount  int     `json:"resCount"`
@@ -57,6 +54,7 @@ const (
 	coordPolygon
 )
 
+/*
 func (db *DB) GetSite(id int64, lang string) (interface{}, error) {
 	params := gin.H{
 		"id":   id,
@@ -124,11 +122,11 @@ func (db *DB) GetSite(id int64, lang string) (interface{}, error) {
 	}
 
 	for {
-		sp, _, ref, err := pipeRows.NextPipeline()
+		sp, meta, ref, err := pipeRows.NextPipeline()
 		if err != nil {
 			return nil, fmt.Errorf("couldn't get row from pipeline: %v", err)
 		}
-		log.Printf("coord: %#v | ref: %#v", sp, ref)
+		log.Printf("coord: %#v | meta: %#v | ref: %#v", sp, meta, ref)
 		if ref == nil {
 			resp.Coords = append(resp.Coords, siteSpatialReferences{
 				X:        sp[0].(float64),
@@ -148,11 +146,15 @@ func (db *DB) GetSite(id int64, lang string) (interface{}, error) {
 	}
 	log.Printf("siteType: %#v | ref: %#v", siteType, ref)
 
-	resp.Stype = siteType[0].(string)
+	resp.Stype = siteType
 	_, _, pipeRows, err = pipeRows.NextPipeline()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't get end of the row from pipeline: %v", err)
 	}
+	data, _, ref, err := pipeRows.NextPipeline()
+	log.Printf("after epoch: %#v | ref: %#v", data, ref)
+	data, _, ref, err = pipeRows.NextPipeline()
+	log.Printf("after first exc: %#v | ref: %#v", data, ref)
 
 	err = pipeline.Close()
 	if err != nil {
@@ -164,7 +166,7 @@ func (db *DB) GetSite(id int64, lang string) (interface{}, error) {
 
 /*
  * Site researches
- */
+*/
 
 func (db *DB) QuerySiteResearches(id, lang string) (interface{}, error) {
 	return nil, nil
@@ -223,72 +225,72 @@ func idsForQueriengCoordinates(ids []int64) gin.H {
 	return params
 }
 
-func (db *DB) Sites(req gin.H) ([]pluralSite, error) {
-	rows, err := db.QueryNeo(
-		fmt.Sprintf(pluralstatement, siteFilterString(req)),
-		gin.H{
-			"name":   buildRegexpFilter(req["name"]),
-			"epoch":  req["epoch"],
-			"type":   req["type"],
-			"offset": req["offset"],
-			"limit":  req["limit"],
-		},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("could not query in neo4j: %v", err)
-	}
+// func (db *DB) Sites(req gin.H) ([]pluralSite, error) {
+// 	rows, err := db.QueryNeo(
+// 		fmt.Sprintf(pluralstatement, siteFilterString(req)),
+// 		gin.H{
+// 			"name":   buildRegexpFilter(req["name"]),
+// 			"epoch":  req["epoch"],
+// 			"type":   req["type"],
+// 			"offset": req["offset"],
+// 			"limit":  req["limit"],
+// 		},
+// 	)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("could not query in neo4j: %v", err)
+// 	}
 
-	var sites []pluralSite
-	var ids []int64
-	for err == nil {
-		var row []interface{}
-		row, _, err = rows.NextNeo()
-		if err != nil && err != io.EOF {
-			return nil, fmt.Errorf("didn't get rows: %v", err)
-		} else if err == io.EOF {
-			continue
-		}
+// 	var sites []pluralSite
+// 	var ids []int64
+// 	for err == nil {
+// 		var row []interface{}
+// 		row, _, err = rows.NextNeo()
+// 		if err != nil && err != io.EOF {
+// 			return nil, fmt.Errorf("didn't get rows: %v", err)
+// 		} else if err == io.EOF {
+// 			continue
+// 		}
 
-		sites = append(sites, pluralSite{
-			ID: row[0].(int64),
-			Item: siteItem{
-				Names:    row[1],
-				ResNames: row[2],
-				Epoch:    row[3].(int64),
-				SiteType: row[4].(int64),
-			},
-		})
-		ids = append(ids, row[0].(int64))
-	}
-	err = rows.Close()
-	if err != nil {
-		return nil, fmt.Errorf("error when closing statement: %v", err)
-	}
+// 		sites = append(sites, pluralSite{
+// 			ID: row[0].(int64),
+// 			Item: siteItem{
+// 				Names:    row[1],
+// 				ResNames: row[2],
+// 				Epoch:    row[3].(int64),
+// 				SiteType: row[4].(int64),
+// 			},
+// 		})
+// 		ids = append(ids, row[0].(int64))
+// 	}
+// 	err = rows.Close()
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error when closing statement: %v", err)
+// 	}
 
-	preStmt := actualCoordinates(len(ids), monument)
-	coordRows, err := db.QueryNeo(preStmt, idsForQueriengCoordinates(ids))
-	if err != nil {
-		return nil, fmt.Errorf("could not query in neo4j: %v", err)
-	}
-	defer func() {
-		err = coordRows.Close()
-		if err != nil {
-			fmt.Printf("closing coordinates statement failed: %v", err)
-		}
-	}()
+// 	preStmt := actualCoordinates(len(ids), monument)
+// 	coordRows, err := db.QueryNeo(preStmt, idsForQueriengCoordinates(ids))
+// 	if err != nil {
+// 		return nil, fmt.Errorf("could not query in neo4j: %v", err)
+// 	}
+// 	defer func() {
+// 		err = coordRows.Close()
+// 		if err != nil {
+// 			fmt.Printf("closing coordinates statement failed: %v", err)
+// 		}
+// 	}()
 
-	coords, _, err := coordRows.All()
-	if err != nil {
-		return nil, fmt.Errorf("could not get rows of data: %v", err)
-	}
+// 	coords, _, err := coordRows.All()
+// 	if err != nil {
+// 		return nil, fmt.Errorf("could not get rows of data: %v", err)
+// 	}
 
-	for i := range sites {
-		sites[i].Coords.X = coords[i][0]
-		sites[i].Coords.Y = coords[i][1]
-	}
+// 	for i := range sites {
+// 		sites[i].Coords.X = coords[i][0]
+// 		sites[i].Coords.Y = coords[i][1]
+// 	}
 
-	return sites, nil
-}
+// 	return sites, nil
+// }
 
 func siteFilterString(reqParams gin.H) string {
 	var filter []string

@@ -1,7 +1,7 @@
 package neo
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
 )
 
 type nodesCounter struct {
@@ -9,24 +9,24 @@ type nodesCounter struct {
 	Count int64  `json:"count"`
 }
 
-func (db *DB) Counts() ([]nodesCounter, error) {
-	rows, err := db.QueryNeo(statement, gin.H{})
+func (db *DB) Counts() ([]*nodesCounter, error) {
+	rows, err := db.Query(statement)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read query failed: %v", err)
 	}
 	defer rows.Close()
 
-	data, _, err := rows.All()
-	if err != nil {
-		return nil, err
-	}
-
-	counts := make([]nodesCounter, len(data))
-	for i, row := range data {
-		counts[i] = nodesCounter{
-			Name:  row[0].(string),
-			Count: row[1].(int64),
+	counts := make([]*nodesCounter, 0)
+	for rows.Next() {
+		item := new(nodesCounter)
+		err = rows.Scan(&item.Name, &item.Count)
+		if err != nil {
+			return nil, fmt.Errorf("failed when iterating rows: %v", err)
 		}
+		counts = append(counts, item)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error when out from rows: %v", err)
 	}
 
 	return counts, nil

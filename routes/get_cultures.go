@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,19 +12,23 @@ type (
 )
 
 func Cultures(c *gin.Context) {
-	req := requestCulture{Lang: "en"}
+	// req := requestCulture{Lang: "en"}
 
-	if err := c.Bind(&req); err != nil {
-		c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
-	}
+	// if err := c.Bind(&req); err != nil {
+	// 	log.Printf("could not bind request: %v", err)
+	// 	c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
+	// 	return
+	// }
 
-	cultures, err := db.Cultures(gin.H{
-		"lang": req.Lang,
-		"name": req.Name,
-	})
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-	}
+	// cultures, err := db.Cultures(gin.H{
+	// 	"lang": req.Lang,
+	// 	"name": req.Name,
+	// })
+	// if err != nil {
+	// 	log.Printf("db query failed: %v", err)
+	// 	c.AbortWithStatus(http.StatusInternalServerError)
+	// 	return
+	// }
 
-	c.JSON(http.StatusOK, gin.H{"cultures": cultures})
+	// c.JSON(http.StatusOK, gin.H{"cultures": cultures})
 }
