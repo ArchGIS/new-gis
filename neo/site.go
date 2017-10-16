@@ -1,10 +1,13 @@
 package neo
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/johnnadratowski/golang-neo4j-bolt-driver/encoding"
 )
 
 //////////////////////
@@ -13,25 +16,25 @@ import (
 
 type (
 	singleSite struct {
-		Name     string      `json:"name"`
-		Names    interface{} `json:"names"`
-		Epoch    string      `json:"epoch"`
-		Stype    interface{} `json:"type"`
-		Cultures []string    `json:"cultures"`
+		Name     string   `json:"name"`
+		Names    []string `json:"names"`
+		Epoch    string   `json:"epoch"`
+		Stype    string   `json:"type"`
+		Cultures []string `json:"cultures"`
 
-		ResCount  int     `json:"resCount"`
-		ExcCount  int     `json:"excCount"`
+		ResCount  int64   `json:"resCount"`
+		ExcCount  int64   `json:"excCount"`
 		ExcArea   float64 `json:"excArea"`
-		ArtiCount int     `json:"artiCount"`
+		ArtiCount int64   `json:"artiCount"`
 
-		Heritages []nHeritage `json:"heritages"`
+		Heritages []*nHeritage `json:"heritages"`
 
-		LayersCount int     `json:"layersCount"`
+		LayersCount int64   `json:"layersCount"`
 		LayersTop   []layer `json:"layersTop"`
 		LayersMid   []layer `json:"layersMid"`
 		LayersBot   []layer `json:"layersBot"`
 
-		Coords []siteSpatialReferences `json:"coords"`
+		Coords []*siteSpatialReferences `json:"coords"`
 	}
 
 	layer struct {
@@ -47,6 +50,11 @@ type (
 		X        float64 `json:"x"`
 		Y        float64 `json:"y"`
 	}
+
+	nHeritage struct {
+		ID   uint64 `json:"id"`
+		Name string `json:"name"`
+	}
 )
 
 const (
@@ -54,119 +62,66 @@ const (
 	coordPolygon
 )
 
-/*
-func (db *DB) GetSite(id int64, lang string) (interface{}, error) {
-	params := gin.H{
-		"id":   id,
-		"lang": lang,
-	}
-	queries := []string{
-		`MATCH (:Monument {id: {id}})<--(k:Knowledge)
-		RETURN COLLECT(k.monument_name) as names`,
-
-		`MATCH (:Monument {id: {id}})-->(sp:SpatialReference)-->(spt:SpatialReferenceType)
-		WITH sp, spt
-		ORDER BY spt.id ASC, sp.date DESC
-		RETURN
-			sp.x as x,
-			sp.y as y,
-			spt.id as accuracy,
-			sp.date as date`,
-
-		`MATCH (:Monument {id: {id}})-->(:MonumentType)-[:translation {lang: {lang}}]->(tr:Translate)
-		RETURN tr.name as name`,
-
-		`MATCH (:Monument {id: {id}})-->(:Epoch)-[:translation {lang: {lang}}]->(tr:Translate)
-		RETURN tr.name as name`,
-
-		`MATCH (:Monument {id: {id}})-->(e:Excavation)
-		OPTIONAL MATCH (e)-->(a:Artifact)
-		RETURN
-			COUNT(e) as excLength,
-			SUM(e.area) as excArea,
-			COUNT(a) as artiLength`,
-
-		`MATCH (:Monument {id: {id}})<--(n:Heritage)
-		RETURN
-			n.id as id,
-			n.name as name`,
-
-		`MATCH (:Monument {id: {id}})<--(:Knowledge)-->(:Culture)-[:translation {lang: {lang}}]->(tr:Translate)
-		RETURN COLLECT(tr.name) as names`,
-
-		`MATCH (:Monument {id: {id}})<--(:Knowledge)<--(r:Research)
-		RETURN COUNT(r) as count`,
-	}
-
-	pipeline, err := db.PreparePipeline(queries...)
+func (db *DB) GetSite(req map[string]interface{}) (*singleSite, error) {
+	params, err := encoding.Marshal(req)
 	if err != nil {
-		return nil, fmt.Errorf("preparing pipeline failed: %v", err)
+		return nil, fmt.Errorf("could not marshal request: %v", err)
 	}
 
-	pipeRows, err := pipeline.QueryPipeline(params, params, params, params, params, params, params, params)
+	var response singleSite
+	names, err := db.getSiteNames(params)
 	if err != nil {
-		return nil, fmt.Errorf("query pipeline failed: %v", err)
+		return nil, fmt.Errorf("names query failed: %v", err)
 	}
+	response.Names = names
 
-	names, _, _, err := pipeRows.NextPipeline()
+	coords, err := db.getSiteCoordinates(params)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get row from pipeline: %v", err)
+		return nil, fmt.Errorf("coords query failed: %v", err)
 	}
+	response.Coords = coords
 
-	var resp singleSite
-	resp.Names = names[0]
-
-	_, _, pipeRows, err = pipeRows.NextPipeline()
+	siteType, err := db.getSiteType(params)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get end of the row from pipeline: %v", err)
+		return nil, fmt.Errorf("siteType query failed: %v", err)
 	}
+	response.Stype = siteType
 
-	for {
-		sp, meta, ref, err := pipeRows.NextPipeline()
-		if err != nil {
-			return nil, fmt.Errorf("couldn't get row from pipeline: %v", err)
-		}
-		log.Printf("coord: %#v | meta: %#v | ref: %#v", sp, meta, ref)
-		if ref == nil {
-			resp.Coords = append(resp.Coords, siteSpatialReferences{
-				X:        sp[0].(float64),
-				Y:        sp[1].(float64),
-				Accuracy: sp[2].(int64),
-				Date:     sp[3].(int64),
-			})
-		} else {
-			pipeRows = ref
-			break
-		}
-	}
-
-	siteType, _, ref, err := pipeRows.NextPipeline()
+	epoch, err := db.getSiteEpoch(params)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get row from pipeline: %v", err)
+		return nil, fmt.Errorf("epoch query failed: %v", err)
 	}
-	log.Printf("siteType: %#v | ref: %#v", siteType, ref)
+	response.Epoch = epoch
 
-	resp.Stype = siteType
-	_, _, pipeRows, err = pipeRows.NextPipeline()
+	response.ExcCount, response.ArtiCount, response.ExcArea, err = db.getSiteExcArtiProps(params)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get end of the row from pipeline: %v", err)
+		return nil, fmt.Errorf("epoch query failed: %v", err)
 	}
-	data, _, ref, err := pipeRows.NextPipeline()
-	log.Printf("after epoch: %#v | ref: %#v", data, ref)
-	data, _, ref, err = pipeRows.NextPipeline()
-	log.Printf("after first exc: %#v | ref: %#v", data, ref)
 
-	err = pipeline.Close()
+	heritages, err := db.getSiteHeritages(params)
 	if err != nil {
-		return nil, fmt.Errorf("error when closing pipeline: %v", err)
+		return nil, fmt.Errorf("heritages query failed: %v", err)
 	}
+	response.Heritages = heritages
 
-	return resp, nil
+	cultures, err := db.getSiteCultures(params)
+	if err != nil {
+		return nil, fmt.Errorf("cultures query failed: %v", err)
+	}
+	response.Cultures = cultures
+
+	resCount, err := db.getSiteResCount(params)
+	if err != nil {
+		return nil, fmt.Errorf("resCount query failed: %v", err)
+	}
+	response.ResCount = resCount
+
+	return &response, nil
 }
 
 /*
  * Site researches
-*/
+ */
 
 func (db *DB) QuerySiteResearches(id, lang string) (interface{}, error) {
 	return nil, nil

@@ -11,7 +11,7 @@ import (
 
 type (
 	DataStore interface {
-		Counts() ([]*nodesCounter, error)
+		// Counts() ([]*nodesCounter, error)
 		Cities(map[string]interface{}) ([]*cityProps, error)
 		// Cultures(gin.H) ([]cultureProps, error)
 		// Epochs(gin.H) ([]epochProps, error)
@@ -21,7 +21,7 @@ type (
 		// Sites(gin.H) ([]pluralSite, error)
 		// Researches(gin.H) ([]pluralResearch, error)
 
-		// GetSite(int64, string) (interface{}, error)
+		GetSite(map[string]interface{}) (*singleSite, error)
 		// QuerySiteResearches(id, lang string) (interface{}, error)
 	}
 

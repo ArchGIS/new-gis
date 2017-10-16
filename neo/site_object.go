@@ -2,141 +2,173 @@ package neo
 
 import (
 	"fmt"
-
-	"github.com/jmcvetta/neoism"
 )
 
-type (
-	site struct {
-		ID uint64
+func (db *DB) getSiteNames(params []byte) ([]string, error) {
+	statement := `MATCH (:Monument {id: {id}})<--(k:Knowledge)
+		RETURN k.monument_name`
+
+	rows, err := db.Query(statement, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var names []string
+	for rows.Next() {
+		var name string
+		err = rows.Scan(&name)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+		names = append(names, name)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
 	}
 
-	nodeProps map[string]interface{}
-)
-
-func NewSite(id uint64) *site {
-	return &site{ID: id}
+	return names, nil
 }
 
-func (siteObj *site) to(result interface{}) *neoism.CypherQuery {
-	var query string
+func (db *DB) getSiteCoordinates(params []byte) ([]*siteSpatialReferences, error) {
+	statement := `MATCH (:Monument {id: {id}})-->(sp:SpatialReference)-->(spt:SpatialReferenceType)
+		WITH sp, spt
+		ORDER BY spt.id ASC, sp.date DESC
+		RETURN
+			sp.x as x,
+			sp.y as y,
+			spt.id as accuracy,
+			sp.date as date`
 
-	switch result.(type) {
-	case *[]siteNames:
-		query = fmt.Sprintf(siteToKnowledge, siteObj.ID)
-	case *[]siteSpatialReferences:
-		query = fmt.Sprintf(siteToSpatial, siteObj.ID)
-	case *[]nHeritage:
-		query = fmt.Sprintf(siteToHeritage, siteObj.ID)
-	case *[]nEpoch:
-		query = fmt.Sprintf(siteToEpoch, siteObj.ID, "en")
-	case *[]nSiteType:
-		query = fmt.Sprintf(siteToType, siteObj.ID, "en")
-	case *[]cultureNames:
-		query = fmt.Sprintf(siteToCultures, siteObj.ID, "en")
-	case *[]researchCount:
-		query = fmt.Sprintf(siteToResCount, siteObj.ID)
-	case *[]excCount:
-		query = fmt.Sprintf(siteToExcCount, siteObj.ID)
-	case *[]artiCount:
-		query = fmt.Sprintf(siteToArtiCount, siteObj.ID)
+	rows, err := db.Query(statement, params)
+	if err != nil {
+		return nil, err
 	}
-	return &neoism.CypherQuery{
-		Statement: query,
-		Result:    result,
+	defer rows.Close()
+
+	var coords []*siteSpatialReferences
+	for rows.Next() {
+		coord := new(siteSpatialReferences)
+		err = rows.Scan(&coord.X, &coord.Y, &coord.Accuracy, &coord.Date)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+		coords = append(coords, coord)
 	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
+
+	return coords, nil
 }
 
-type siteNames struct {
-	Names []string `json:"names"`
+func (db *DB) getSiteType(params []byte) (string, error) {
+	statement := `MATCH (:Monument {id: {id}})-->(:MonumentType)-[:translation {lang: {lang}}]->(tr:Translate)
+		RETURN tr.name as name`
+
+	var stype string
+	err := db.QueryRow(statement, params).Scan(&stype)
+	if err != nil {
+		return "", err
+	}
+
+	return stype, nil
 }
 
-const siteToKnowledge = `
-	MATCH (:Monument {id: %d})<--(k:Knowledge)
-	RETURN COLLECT(k.monument_name) as names
-`
+func (db *DB) getSiteEpoch(params []byte) (string, error) {
+	statement := `MATCH (:Monument {id: {id}})-->(:Epoch)-[:translation {lang: {lang}}]->(tr:Translate)
+		RETURN tr.name as name`
 
-// type siteSpatialReferences struct {
-// 	Date     uint64  `json:"date"`
-// 	Accuracy int     `json:"accuracy"`
-// 	Points   []point `json:"points"`
-// }
+	var epoch string
+	err := db.QueryRow(statement, params).Scan(&epoch)
+	if err != nil {
+		return "", err
+	}
 
-const siteToSpatial = `
-	MATCH (:Monument {id: %d})-->(sp:SpatialReference)-->(spt:SpatialReferenceType)
-	WITH sp, spt
-	ORDER BY spt.id ASC, sp.date DESC
-	RETURN
-		[{x: sp.x, y: sp.y}] as points,
-		spt.id as accuracy,
-		sp.date as date
-`
-
-type nSiteType struct {
-	Name string `json:"name"`
+	return epoch, nil
 }
 
-const siteToType = `
-	MATCH (:Monument {id: %d})-->(:MonumentType)-[:translation {lang: "%s"}]->(tr:Translate)
-	RETURN tr.name as name
-`
+func (db *DB) getSiteExcArtiProps(params []byte) (int64, int64, float64, error) {
+	statement := `MATCH (:Monument {id: {id}})-->(e:Excavation)
+		OPTIONAL MATCH (e)-->(a:Artifact)
+		RETURN
+			COUNT(e) as excLength,
+			SUM(e.area) as excArea,
+			COUNT(a) as artiLength`
 
-type nEpoch struct {
-	Name string `json:"name"`
+	var excLen, artiLen int64
+	var excArea float64
+	err := db.QueryRow(statement, params).Scan(&excLen, &excArea, &artiLen)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+
+	return excLen, artiLen, excArea, nil
 }
 
-const siteToEpoch = `
-	MATCH (:Monument {id: %d})-->(:Epoch)-[:translation {lang: "%s"}]->(tr:Translate)
-	RETURN tr.name as name
-`
+func (db *DB) getSiteHeritages(params []byte) ([]*nHeritage, error) {
+	statement := `MATCH (:Monument {id: {id}})<--(n:Heritage)
+		RETURN
+			n.id as id,
+			n.name as name`
 
-type excCount struct {
-	Count int     `json:"count"`
-	Area  float64 `json:"area"`
+	rows, err := db.Query(statement, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var heritages []*nHeritage
+	for rows.Next() {
+		herit := new(nHeritage)
+		err = rows.Scan(&herit.ID, &herit.Name)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+		heritages = append(heritages, herit)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
+
+	return heritages, nil
 }
 
-const siteToExcCount = `
-	MATCH (:Monument {id: %d})-->(n:Excavation)
-	RETURN
-		COUNT(n) as count,
-		SUM(n.area) as area
-`
+func (db *DB) getSiteCultures(params []byte) ([]string, error) {
+	statement := `MATCH (:Monument {id: {id}})<--(:Knowledge)-->(:Culture)-[:translation {lang: {lang}}]->(tr:Translate)
+		RETURN tr.name`
 
-type nHeritage struct {
-	ID   uint64 `json:"id"`
-	Name string `json:"name"`
+	rows, err := db.Query(statement, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cultures []string
+	for rows.Next() {
+		var culture string
+		err = rows.Scan(&culture)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+		cultures = append(cultures, culture)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
+
+	return cultures, nil
 }
 
-const siteToHeritage = `
-	MATCH (:Monument {id: %d})<--(n:Heritage)
-	RETURN
-		n.id as id,
-		n.name as name
-`
+func (db *DB) getSiteResCount(params []byte) (int64, error) {
+	statement := `MATCH (:Monument {id: {id}})<--(:Knowledge)<--(r:Research)
+		RETURN COUNT(r) as count`
 
-type cultureNames struct {
-	Names []string `json:"names"`
+	var resCount int64
+	err := db.QueryRow(statement, params).Scan(&resCount)
+	if err != nil {
+		return 0, err
+	}
+
+	return resCount, nil
 }
-
-const siteToCultures = `
-	MATCH (:Monument {id: %d})<--(:Knowledge)-->(:Culture)-[:translation {lang: "%s"}]->(tr:Translate)
-	RETURN COLLECT(tr.name) as names
-`
-
-type researchCount struct {
-	Count int `json:"count"`
-}
-
-const siteToResCount = `
-	MATCH (:Monument {id: %d})<--(:Knowledge)<--(r:Research)
-	RETURN COUNT(r) as count
-`
-
-type artiCount struct {
-	Count int `json:"count"`
-}
-
-const siteToArtiCount = `
-	MATCH (:Monument {id: %d})-->(:Excavation)-->(a:Artifact)
-	RETURN COUNT(a) as count
-`

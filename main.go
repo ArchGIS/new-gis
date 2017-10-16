@@ -35,7 +35,7 @@ func main() {
 	apiV1 := r.Group("/v1")
 	// apiV1.Use(middleware.JWT([]byte(os.Getenv(authSecret))))
 	{
-		apiV1.GET("/counts", routes.Count)
+		// apiV1.GET("/counts", routes.Count)
 		apiV1.GET("/epochs", routes.Epochs)
 		apiV1.GET("/site_types", routes.SiteTypes)
 		apiV1.GET("/cultures", routes.Cultures)

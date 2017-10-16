@@ -1,6 +1,10 @@
 package routes
 
 import (
+	"log"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,30 +42,35 @@ func Sites(c *gin.Context) {
 	// c.JSON(http.StatusOK, gin.H{"sites": sites})
 }
 
-// SingleSite get info about single archaelogical site
+type siteInfoRequest struct {
+	// ID   int64  `form:"id"`
+	Lang string `form:"lang" binding:"eq=en|eq=ru"`
+}
+
+// SingleSite get general info about single archaelogical site
 func SingleSite(c *gin.Context) {
-	// sID := c.Param("id")
-	// ID, err := strconv.Atoi(sID)
-	// if err != nil {
-	// 	log.Printf("couldn't convert id to integer: %v", err)
-	// 	c.AbortWithError(http.StatusNotAcceptable, err)
-	// 	return
-	// }
-	// lang := c.Query("lang")
-	// if lang != "" && (lang != "ru" || lang != "en") {
-	// 	log.Printf("wrong lang: %v", lang)
-	// 	c.AbortWithStatus(http.StatusNotAcceptable)
-	// 	return
-	// }
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Panicf("could not convert id to int: %v", err)
+	}
 
-	// site, err := db.GetSite(int64(ID), lang)
-	// if err != nil {
-	// 	log.Printf("error: %v", err)
-	// 	c.AbortWithStatus(http.StatusInternalServerError)
-	// 	return
-	// }
+	req := siteInfoRequest{Lang: "en"}
+	if err := c.BindQuery(&req); err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Panicf("could not bind query params: %v", err)
+	}
 
-	// c.JSON(http.StatusOK, gin.H{"site": site})
+	site, err := db.GetSite(map[string]interface{}{
+		"id":   int64(id),
+		"lang": req.Lang,
+	})
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		log.Panicf("error: %v", err)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"site": site})
 }
 
 // SiteResearches get researches related to site
