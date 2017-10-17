@@ -62,6 +62,7 @@ const (
 	coordPolygon
 )
 
+// GetSite returns general info about site from db
 func (db *DB) GetSite(req map[string]interface{}) (*singleSite, error) {
 	params, err := encoding.Marshal(req)
 	if err != nil {
@@ -119,10 +120,6 @@ func (db *DB) GetSite(req map[string]interface{}) (*singleSite, error) {
 	return &response, nil
 }
 
-/*
- * Site researches
- */
-
 type siteResearch struct {
 	ResID     int64  `json:"res_id"`
 	ResName   string `json:"res_name"`
@@ -134,6 +131,7 @@ type siteResearch struct {
 	ArtiCount int64  `json:"art_count"`
 }
 
+// QuerySiteResearches returns site researches from db
 func (db *DB) QuerySiteResearches(req map[string]interface{}) ([]*siteResearch, error) {
 	params, err := encoding.Marshal(req)
 	if err != nil {
@@ -148,10 +146,6 @@ func (db *DB) QuerySiteResearches(req map[string]interface{}) ([]*siteResearch, 
 	return res, nil
 }
 
-/*
- * Site reports
- */
-
 type siteReport struct {
 	ID     int64  `json:"id"`
 	Name   string `json:"name"`
@@ -159,6 +153,7 @@ type siteReport struct {
 	Author string `json:"author"`
 }
 
+// QuerySiteReports returns site reports from db
 func (db *DB) QuerySiteReports(req map[string]interface{}) ([]*siteReport, error) {
 	params, err := encoding.Marshal(req)
 	if err != nil {
@@ -173,10 +168,6 @@ func (db *DB) QuerySiteReports(req map[string]interface{}) ([]*siteReport, error
 	return rep, nil
 }
 
-/*
- *	Site excavations
- */
-
 type siteExcavation struct {
 	ID        int64   `json:"id"`
 	Name      string  `json:"name"`
@@ -186,6 +177,7 @@ type siteExcavation struct {
 	ResYear   int64   `json:"res_year"`
 }
 
+// QuerySiteExcavations returns site excavations from db
 func (db *DB) QuerySiteExcavations(req map[string]interface{}) ([]*siteExcavation, error) {
 	params, err := encoding.Marshal(req)
 	if err != nil {
@@ -201,7 +193,7 @@ func (db *DB) QuerySiteExcavations(req map[string]interface{}) ([]*siteExcavatio
 }
 
 /*
-
+ * Site artifacts
  */
 
 type siteArtifact struct {
@@ -211,6 +203,7 @@ type siteArtifact struct {
 	ResYear   int64  `json:"res_year"`
 }
 
+// QuerySiteArtifacts returns site artifacts from db
 func (db *DB) QuerySiteArtifacts(req map[string]interface{}) ([]*siteArtifact, error) {
 	params, err := encoding.Marshal(req)
 	if err != nil {
@@ -225,10 +218,6 @@ func (db *DB) QuerySiteArtifacts(req map[string]interface{}) ([]*siteArtifact, e
 	return artifacts, nil
 }
 
-/*
- * Site radiocarbon
- */
-
 type siteCarbon struct {
 	ID       int64  `json:"id"`
 	Name     string `json:"name"`
@@ -237,6 +226,7 @@ type siteCarbon struct {
 	Material string `json:"material"`
 }
 
+// QuerySiteRadioCarbon returns site radiocarbon from db
 func (db *DB) QuerySiteRadioCarbon(req map[string]interface{}) ([]*siteCarbon, error) {
 	params, err := encoding.Marshal(req)
 	if err != nil {
@@ -250,10 +240,6 @@ func (db *DB) QuerySiteRadioCarbon(req map[string]interface{}) ([]*siteCarbon, e
 
 	return radiocarbon, nil
 }
-
-/*
- * Plural
- */
 
 type (
 	pluralSite struct {
