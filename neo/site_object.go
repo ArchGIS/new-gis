@@ -349,3 +349,30 @@ func (db *DB) getSitePhotos(params []byte) ([]*sitePhoto, error) {
 
 	return photos, nil
 }
+
+func (db *DB) getSiteTopos(params []byte) ([]*siteTopo, error) {
+	statement := `MATCH (:Monument {id: {id}})<--(:Knowledge)-[:hastopo]->(i:Image)
+	RETURN i.fileid, i.author, i.year`
+
+	rows, err := db.Query(statement, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var topos []*siteTopo
+	for rows.Next() {
+		topo := new(siteTopo)
+		err = rows.Scan(&topo.ID, &topo.Author, &topo.Year)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+
+		topos = append(topos, topo)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
+
+	return topos, nil
+}

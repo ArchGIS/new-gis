@@ -261,6 +261,26 @@ func (db *DB) QuerySitePhotos(req map[string]interface{}) ([]*sitePhoto, error) 
 	return photos, nil
 }
 
+type siteTopo struct {
+	ID     string `json:"fileid"`
+	Author string `json:"author"`
+	Year   int64  `json:"year"`
+}
+
+func (db *DB) QuerySiteTopoplans(req map[string]interface{}) ([]*siteTopo, error) {
+	params, err := encoding.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal request: %v", err)
+	}
+
+	topos, err := db.getSiteTopos(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return topos, nil
+}
+
 type (
 	pluralSite struct {
 		ID     int64    `json:"id"`

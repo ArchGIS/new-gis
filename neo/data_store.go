@@ -28,6 +28,7 @@ type (
 		QuerySiteArtifacts(map[string]interface{}) ([]*siteArtifact, error)
 		QuerySiteRadioCarbon(map[string]interface{}) ([]*siteCarbon, error)
 		QuerySitePhotos(map[string]interface{}) ([]*sitePhoto, error)
+		QuerySiteTopoplans(map[string]interface{}) ([]*siteTopo, error)
 	}
 
 	DB struct {

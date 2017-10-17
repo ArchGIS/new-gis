@@ -59,6 +59,7 @@ func main() {
 		apiV1.GET("/site/:id/artifacts", routes.SiteArtifacts)
 		apiV1.GET("/site/:id/radiocarbon", routes.SiteRadioCarbon)
 		apiV1.GET("/site/:id/photos", routes.SitePhotos)
+		apiV1.GET("/site/:id/topos", routes.SiteTopoplans)
 	}
 
 	r.Run(":8181")
