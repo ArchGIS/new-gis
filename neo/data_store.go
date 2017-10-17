@@ -27,6 +27,7 @@ type (
 		QuerySiteExcavations(map[string]interface{}) ([]*siteExcavation, error)
 		QuerySiteArtifacts(map[string]interface{}) ([]*siteArtifact, error)
 		QuerySiteRadioCarbon(map[string]interface{}) ([]*siteCarbon, error)
+		QuerySitePhotos(map[string]interface{}) ([]*sitePhoto, error)
 	}
 
 	DB struct {

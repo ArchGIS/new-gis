@@ -241,6 +241,26 @@ func (db *DB) QuerySiteRadioCarbon(req map[string]interface{}) ([]*siteCarbon, e
 	return radiocarbon, nil
 }
 
+type sitePhoto struct {
+	ID        string `json:"fileid"`
+	Part      string `json:"part"`
+	Direction string `json:"direction"`
+}
+
+func (db *DB) QuerySitePhotos(req map[string]interface{}) ([]*sitePhoto, error) {
+	params, err := encoding.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal request: %v", err)
+	}
+
+	photos, err := db.getSitePhotos(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return photos, nil
+}
+
 type (
 	pluralSite struct {
 		ID     int64    `json:"id"`

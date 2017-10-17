@@ -165,3 +165,29 @@ func SiteRadioCarbon(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"site_carbon": rc})
 }
+
+// SitePhotos get photos related to site
+func SitePhotos(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Panicf("could not convert id to int: %v", err)
+	}
+
+	req := siteInfoRequest{Lang: "en"}
+	if err := c.BindQuery(&req); err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Panicf("could not bind query params: %v", err)
+	}
+
+	photos, err := db.QuerySitePhotos(map[string]interface{}{
+		"id":   id,
+		"lang": req.Lang,
+	})
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		log.Panicf("query failed: %v", err)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"site_photos": photos})
+}

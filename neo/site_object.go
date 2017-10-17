@@ -322,3 +322,30 @@ func (db *DB) getSiteRadioCarbon(params []byte) ([]*siteCarbon, error) {
 
 	return carbon, nil
 }
+
+func (db *DB) getSitePhotos(params []byte) ([]*sitePhoto, error) {
+	statement := `MATCH (:Monument {id: {id}})<--(:Knowledge)-[:has]->(i:Image)-->(cd:CardinalDirection)
+	RETURN i.fileid, i.monumentPart, cd.name`
+
+	rows, err := db.Query(statement, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var photos []*sitePhoto
+	for rows.Next() {
+		photo := new(sitePhoto)
+		err = rows.Scan(&photo.ID, &photo.Part, &photo.Direction)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+
+		photos = append(photos, photo)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
+
+	return photos, nil
+}
