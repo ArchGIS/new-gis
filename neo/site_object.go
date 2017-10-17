@@ -266,3 +266,32 @@ func (db *DB) getSiteExcavations(params []byte) ([]*siteExcavation, error) {
 
 	return excs, nil
 }
+
+func (db *DB) getSiteArtifacts(params []byte) ([]*siteArtifact, error) {
+	statement := `MATCH (s:Monument {id: {id}})<--(:Knowledge)<--(r:Research)-[:hasauthor]->(aut:Author)
+	MATCH (s)-->(e:Excavation)<--(r)
+	MATCH (e)-->(art:Artifact)
+	RETURN art.id, art.name, aut.name, r.year`
+
+	rows, err := db.Query(statement, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var artifacts []*siteArtifact
+	for rows.Next() {
+		art := new(siteArtifact)
+		err = rows.Scan(&art.ID, &art.Name, &art.ResAuthor, &art.ResYear)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+
+		artifacts = append(artifacts, art)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
+
+	return artifacts, nil
+}

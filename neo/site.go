@@ -201,6 +201,31 @@ func (db *DB) QuerySiteExcavations(req map[string]interface{}) ([]*siteExcavatio
 }
 
 /*
+
+ */
+
+type siteArtifact struct {
+	ID        int64  `json:"id"`
+	Name      string `json:"name"`
+	ResAuthor string `json:"res_author"`
+	ResYear   int64  `json:"res_year"`
+}
+
+func (db *DB) QuerySiteArtifacts(req map[string]interface{}) ([]*siteArtifact, error) {
+	params, err := encoding.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal request: %v", err)
+	}
+
+	artifacts, err := db.getSiteArtifacts(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return artifacts, nil
+}
+
+/*
  * Plural
  */
 
