@@ -226,6 +226,32 @@ func (db *DB) QuerySiteArtifacts(req map[string]interface{}) ([]*siteArtifact, e
 }
 
 /*
+ * Site radiocarbon
+ */
+
+type siteCarbon struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Date     int64  `json:"date"`
+	Sigma    int64  `json:"sigma"`
+	Material string `json:"material"`
+}
+
+func (db *DB) QuerySiteRadioCarbon(req map[string]interface{}) ([]*siteCarbon, error) {
+	params, err := encoding.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal request: %v", err)
+	}
+
+	radiocarbon, err := db.getSiteRadioCarbon(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return radiocarbon, nil
+}
+
+/*
  * Plural
  */
 

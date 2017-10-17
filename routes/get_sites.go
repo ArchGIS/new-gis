@@ -148,3 +148,20 @@ func SiteArtifacts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"site_reports": reports})
 }
+
+// SiteRadioCarbon get radiocarbons related to site
+func SiteRadioCarbon(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Panicf("could not convert id to int: %v", err)
+	}
+
+	rc, err := db.QuerySiteRadioCarbon(map[string]interface{}{"id": id})
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		log.Panicf("query failed: %v", err)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"site_carbon": rc})
+}

@@ -295,3 +295,30 @@ func (db *DB) getSiteArtifacts(params []byte) ([]*siteArtifact, error) {
 
 	return artifacts, nil
 }
+
+func (db *DB) getSiteRadioCarbon(params []byte) ([]*siteCarbon, error) {
+	statement := `MATCH (:Monument {id: {id}})<--(:Knowledge)-->(rc:Radiocarbon)-->(cm:CarbonMaterial)
+	RETURN rc.id, rc.name, rc.date, rc.s, cm.name`
+
+	rows, err := db.Query(statement, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var carbon []*siteCarbon
+	for rows.Next() {
+		rc := new(siteCarbon)
+		err = rows.Scan(&rc.ID, &rc.Name, &rc.Date, &rc.Sigma, &rc.Material)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+
+		carbon = append(carbon, rc)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
+
+	return carbon, nil
+}
