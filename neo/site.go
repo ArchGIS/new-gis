@@ -174,6 +174,33 @@ func (db *DB) QuerySiteReports(req map[string]interface{}) ([]*siteReport, error
 }
 
 /*
+ *	Site excavations
+ */
+
+type siteExcavation struct {
+	ID        int64   `json:"id"`
+	Name      string  `json:"name"`
+	Area      float64 `json:"area,omitempty"`
+	Boss      string  `json:"boss,omitempty"`
+	ResAuthor string  `json:"res_author"`
+	ResYear   int64   `json:"res_year"`
+}
+
+func (db *DB) QuerySiteExcavations(req map[string]interface{}) ([]*siteExcavation, error) {
+	params, err := encoding.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal request: %v", err)
+	}
+
+	exc, err := db.getSiteExcavations(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return exc, nil
+}
+
+/*
  * Plural
  */
 

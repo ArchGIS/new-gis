@@ -1,6 +1,7 @@
 package neo
 
 import (
+	"database/sql"
 	"fmt"
 )
 
@@ -227,4 +228,41 @@ func (db *DB) getSiteReports(params []byte) ([]*siteReport, error) {
 	}
 
 	return reports, nil
+}
+
+func (db *DB) getSiteExcavations(params []byte) ([]*siteExcavation, error) {
+	statement := `MATCH (s:Monument {id: {id}})<--(:Knowledge)<--(r:Research)-[:hasauthor]->(a:Author)
+	MATCH (s)-->(e:Excavation)<--(r)
+	RETURN e.id, e.name, e.area, e.boss, a.name, r.year`
+
+	rows, err := db.Query(statement, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var excs []*siteExcavation
+	for rows.Next() {
+		var boss sql.NullString
+		var area sql.NullFloat64
+		exc := new(siteExcavation)
+		err = rows.Scan(&exc.ID, &exc.Name, &area, &boss, &exc.ResAuthor, &exc.ResYear)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+
+		if boss.Valid {
+			exc.Boss = boss.String
+		}
+		if area.Valid {
+			exc.Area = area.Float64
+		}
+
+		excs = append(excs, exc)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
+
+	return excs, nil
 }

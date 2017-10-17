@@ -55,6 +55,7 @@ func main() {
 		apiV1.GET("/site/:id", routes.SingleSite)
 		apiV1.GET("/site/:id/researches", routes.SiteResearches)
 		apiV1.GET("/site/:id/reports", routes.SiteReports)
+		apiV1.GET("/site/:id/excavations", routes.SiteExcavations)
 	}
 
 	r.Run(":8181")

@@ -24,6 +24,7 @@ type (
 		GetSite(map[string]interface{}) (*singleSite, error)
 		QuerySiteResearches(map[string]interface{}) ([]*siteResearch, error)
 		QuerySiteReports(map[string]interface{}) ([]*siteReport, error)
+		QuerySiteExcavations(map[string]interface{}) ([]*siteExcavation, error)
 	}
 
 	DB struct {
