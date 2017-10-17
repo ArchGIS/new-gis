@@ -22,7 +22,8 @@ type (
 		// Researches(gin.H) ([]pluralResearch, error)
 
 		GetSite(map[string]interface{}) (*singleSite, error)
-		// QuerySiteResearches(id, lang string) (interface{}, error)
+		QuerySiteResearches(map[string]interface{}) ([]*siteResearch, error)
+		QuerySiteReports(map[string]interface{}) ([]*siteReport, error)
 	}
 
 	DB struct {

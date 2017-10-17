@@ -123,13 +123,59 @@ func (db *DB) GetSite(req map[string]interface{}) (*singleSite, error) {
  * Site researches
  */
 
-func (db *DB) QuerySiteResearches(id, lang string) (interface{}, error) {
-	return nil, nil
+type siteResearch struct {
+	ResID     int64  `json:"res_id"`
+	ResName   string `json:"res_name"`
+	ResYear   int64  `json:"res_year"`
+	ResType   string `json:"res_type"`
+	SiteName  string `json:"site_name"`
+	Culture   string `json:"culture"`
+	ExcCount  int64  `json:"exc_count"`
+	ArtiCount int64  `json:"art_count"`
 }
 
-//////////////////////
-////// Plural ////////
-//////////////////////
+func (db *DB) QuerySiteResearches(req map[string]interface{}) ([]*siteResearch, error) {
+	params, err := encoding.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal request: %v", err)
+	}
+
+	res, err := db.getSiteResearches(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+/*
+ * Site reports
+ */
+
+type siteReport struct {
+	ID     int64  `json:"id"`
+	Name   string `json:"name"`
+	Year   int64  `json:"year"`
+	Author string `json:"author"`
+}
+
+func (db *DB) QuerySiteReports(req map[string]interface{}) ([]*siteReport, error) {
+	params, err := encoding.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal request: %v", err)
+	}
+
+	rep, err := db.getSiteReports(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return rep, nil
+}
+
+/*
+ * Plural
+ */
 
 type (
 	pluralSite struct {

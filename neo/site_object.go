@@ -172,3 +172,59 @@ func (db *DB) getSiteResCount(params []byte) (int64, error) {
 
 	return resCount, nil
 }
+
+func (db *DB) getSiteResearches(params []byte) ([]*siteResearch, error) {
+	statement := `MATCH (s:Monument {id: {id}})
+		MATCH (s)<--(k:Knowledge)<--(r:Research)-->(rt:ResearchType)-[:translation {lang: {lang}}]->(rtTr:Translate)
+		MATCH (k)-->(c:Culture)-[:translation {lang: {lang}}]->(cTr:Translate)
+		OPTIONAL MATCH (s)-->(e:Excavation)<--(r)
+		OPTIONAL MATCH (e)-->(a:Artifact)
+		return r.id, r.name, r.year, rtTr.name, k.monument_name, cTr.name, COUNT(e), COUNT(a)`
+
+	rows, err := db.Query(statement, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var researches []*siteResearch
+	for rows.Next() {
+		res := new(siteResearch)
+		err = rows.Scan(&res.ResID, &res.ResName, &res.ResYear, &res.ResType, &res.SiteName, &res.Culture, &res.ExcCount, &res.ArtiCount)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+		researches = append(researches, res)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
+
+	return researches, nil
+}
+
+func (db *DB) getSiteReports(params []byte) ([]*siteReport, error) {
+	statement := `MATCH (:Monument {id: {id}})<--(:Knowledge)<--(:Research)-->(rep:Report)-->(a:Author)
+		RETURN rep.id, rep.name, rep.year, a.name`
+
+	rows, err := db.Query(statement, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reports []*siteReport
+	for rows.Next() {
+		rep := new(siteReport)
+		err = rows.Scan(&rep.ID, &rep.Name, &rep.Year, &rep.Author)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+		reports = append(reports, rep)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
+
+	return reports, nil
+}

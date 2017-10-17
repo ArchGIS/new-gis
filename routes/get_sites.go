@@ -43,13 +43,12 @@ func Sites(c *gin.Context) {
 }
 
 type siteInfoRequest struct {
-	// ID   int64  `form:"id"`
 	Lang string `form:"lang" binding:"eq=en|eq=ru"`
 }
 
 // SingleSite get general info about single archaelogical site
 func SingleSite(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		log.Panicf("could not convert id to int: %v", err)
@@ -62,7 +61,7 @@ func SingleSite(c *gin.Context) {
 	}
 
 	site, err := db.GetSite(map[string]interface{}{
-		"id":   int64(id),
+		"id":   id,
 		"lang": req.Lang,
 	})
 	if err != nil {
@@ -75,16 +74,43 @@ func SingleSite(c *gin.Context) {
 
 // SiteResearches get researches related to site
 func SiteResearches(c *gin.Context) {
-	// id := c.Param("id")
-	// lang := c.Query("lang")
-	// if lang == "" {
-	// 	lang = "en"
-	// }
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Panicf("could not convert id to int: %v", err)
+	}
 
-	// res, err := db.QuerySiteResearches(id, lang)
-	// if err != nil {
-	// 	c.AbortWithStatus(http.StatusInternalServerError)
-	// }
+	req := siteInfoRequest{Lang: "en"}
+	if err := c.BindQuery(&req); err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Panicf("could not bind query params: %v", err)
+	}
 
-	// c.JSON(http.StatusOK, gin.H{"site_researches": res})
+	res, err := db.QuerySiteResearches(map[string]interface{}{
+		"id":   id,
+		"lang": req.Lang,
+	})
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		log.Panicf("query failed: %v", err)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"site_researches": res})
+}
+
+// SiteReports get reports related to site
+func SiteReports(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Panicf("could not convert id to int: %v", err)
+	}
+
+	reports, err := db.QuerySiteReports(map[string]interface{}{"id": id})
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		log.Panicf("query failed: %v", err)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"site_reports": reports})
 }
