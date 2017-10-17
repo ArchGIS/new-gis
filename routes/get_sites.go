@@ -123,13 +123,13 @@ func SiteExcavations(c *gin.Context) {
 		log.Panicf("could not convert id to int: %v", err)
 	}
 
-	reports, err := db.QuerySiteExcavations(map[string]interface{}{"id": id})
+	excavations, err := db.QuerySiteExcavations(map[string]interface{}{"id": id})
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		log.Panicf("query failed: %v", err)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"site_reports": reports})
+	c.JSON(http.StatusOK, gin.H{"site_excavations": excavations})
 }
 
 // SiteArtifacts get artifacts related to site
@@ -140,13 +140,13 @@ func SiteArtifacts(c *gin.Context) {
 		log.Panicf("could not convert id to int: %v", err)
 	}
 
-	reports, err := db.QuerySiteArtifacts(map[string]interface{}{"id": id})
+	artifacts, err := db.QuerySiteArtifacts(map[string]interface{}{"id": id})
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		log.Panicf("query failed: %v", err)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"site_reports": reports})
+	c.JSON(http.StatusOK, gin.H{"site_artifacts": artifacts})
 }
 
 // SiteRadioCarbon get radiocarbons related to site
