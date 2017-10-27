@@ -11,35 +11,35 @@ import (
 type (
 	requestParams struct {
 		Name   string `form:"name"`
-		Epoch  int    `form:"epoch_id"`
-		Type   int    `form:"type_id"`
-		Offset int    `form:"offset"`
-		Limit  int    `form:"limit"`
+		Epoch  int64  `form:"epoch_id"`
+		Type   int64  `form:"type_id"`
+		Offset int64  `form:"offset"`
+		Limit  int64  `form:"limit"`
 	}
 )
 
 // Sites gets info about archeological sites
 func Sites(c *gin.Context) {
-	// req := requestParams{Limit: 20}
+	req := requestParams{Limit: 20}
 
-	// if err := c.Bind(&req); err != nil {
-	// 	c.AbortWithError(http.StatusBadRequest, NotAllowedQueryParams)
-	// }
+	if err := c.BindQuery(&req); err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Panic(err)
+	}
 
-	// sites, err := db.Sites(gin.H{
-	// 	"name":   req.Name,
-	// 	"epoch":  req.Epoch,
-	// 	"type":   req.Type,
-	// 	"offset": req.Offset,
-	// 	"limit":  req.Limit,
-	// })
-	// if err != nil {
-	// 	log.Print(err)
-	// 	c.AbortWithStatus(http.StatusInternalServerError)
-	// 	return
-	// }
+	sites, err := db.Sites(map[string]interface{}{
+		"name":   req.Name,
+		"epoch":  req.Epoch,
+		"type":   req.Type,
+		"offset": req.Offset,
+		"limit":  req.Limit,
+	})
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		log.Panic(err)
+	}
 
-	// c.JSON(http.StatusOK, gin.H{"sites": sites})
+	c.JSON(http.StatusOK, gin.H{"sites": sites})
 }
 
 type siteInfoRequest struct {

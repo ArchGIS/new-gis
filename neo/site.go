@@ -3,7 +3,6 @@ package neo
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -301,25 +300,14 @@ type (
 	}
 )
 
-const (
-	pluralstatement = `
-    MATCH (s:Monument)<--(k:Knowledge)
-    MATCH (s)-[:has]->(st:MonumentType)
-    MATCH (s)-[:has]->(e:Epoch)
-    MATCH (r:Research)-[:has]->(k)
-		%s
-		WITH
-			s.id as id,
-			collect(k.monument_name) as site_name,
-			collect(r.name) as research_name,
-			e.id as epoch,
-			st.id as type
-    RETURN id, site_name, research_name, epoch, type
-    SKIP {offset} LIMIT {limit}
-	`
+func (db *DB) Sites(req map[string]interface{}) ([]*site, error) {
+	sites, err := db.getSites(req)
+	if err != nil {
+		return nil, err
+	}
 
-	monument = "Monument"
-)
+	return sites, nil
+}
 
 func idsForQueriengCoordinates(ids []int64) gin.H {
 	params := make(gin.H)
@@ -328,91 +316,4 @@ func idsForQueriengCoordinates(ids []int64) gin.H {
 	}
 
 	return params
-}
-
-// func (db *DB) Sites(req gin.H) ([]pluralSite, error) {
-// 	rows, err := db.QueryNeo(
-// 		fmt.Sprintf(pluralstatement, siteFilterString(req)),
-// 		gin.H{
-// 			"name":   buildRegexpFilter(req["name"]),
-// 			"epoch":  req["epoch"],
-// 			"type":   req["type"],
-// 			"offset": req["offset"],
-// 			"limit":  req["limit"],
-// 		},
-// 	)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("could not query in neo4j: %v", err)
-// 	}
-
-// 	var sites []pluralSite
-// 	var ids []int64
-// 	for err == nil {
-// 		var row []interface{}
-// 		row, _, err = rows.NextNeo()
-// 		if err != nil && err != io.EOF {
-// 			return nil, fmt.Errorf("didn't get rows: %v", err)
-// 		} else if err == io.EOF {
-// 			continue
-// 		}
-
-// 		sites = append(sites, pluralSite{
-// 			ID: row[0].(int64),
-// 			Item: siteItem{
-// 				Names:    row[1],
-// 				ResNames: row[2],
-// 				Epoch:    row[3].(int64),
-// 				SiteType: row[4].(int64),
-// 			},
-// 		})
-// 		ids = append(ids, row[0].(int64))
-// 	}
-// 	err = rows.Close()
-// 	if err != nil {
-// 		return nil, fmt.Errorf("error when closing statement: %v", err)
-// 	}
-
-// 	preStmt := actualCoordinates(len(ids), monument)
-// 	coordRows, err := db.QueryNeo(preStmt, idsForQueriengCoordinates(ids))
-// 	if err != nil {
-// 		return nil, fmt.Errorf("could not query in neo4j: %v", err)
-// 	}
-// 	defer func() {
-// 		err = coordRows.Close()
-// 		if err != nil {
-// 			fmt.Printf("closing coordinates statement failed: %v", err)
-// 		}
-// 	}()
-
-// 	coords, _, err := coordRows.All()
-// 	if err != nil {
-// 		return nil, fmt.Errorf("could not get rows of data: %v", err)
-// 	}
-
-// 	for i := range sites {
-// 		sites[i].Coords.X = coords[i][0]
-// 		sites[i].Coords.Y = coords[i][1]
-// 	}
-
-// 	return sites, nil
-// }
-
-func siteFilterString(reqParams gin.H) string {
-	var filter []string
-	var stmt string
-
-	if reqParams["name"] != "" {
-		filter = append(filter, "k.monument_name =~ {name}")
-	}
-	if reqParams["epoch"] != 0 {
-		filter = append(filter, "e.id = {epoch}")
-	}
-	if reqParams["type"] != 0 {
-		filter = append(filter, "st.id = {type}")
-	}
-	if len(filter) > 0 {
-		stmt = "WHERE " + strings.Join(filter, " AND ")
-	}
-
-	return stmt
 }

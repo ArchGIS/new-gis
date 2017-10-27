@@ -3,6 +3,10 @@ package neo
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"strings"
+
+	"github.com/johnnadratowski/golang-neo4j-bolt-driver/encoding"
 )
 
 func (db *DB) getSiteNames(params []byte) ([]string, error) {
@@ -32,14 +36,16 @@ func (db *DB) getSiteNames(params []byte) ([]string, error) {
 }
 
 func (db *DB) getSiteCoordinates(params []byte) ([]*siteSpatialReferences, error) {
-	statement := `MATCH (:Monument {id: {id}})-->(sp:SpatialReference)-->(spt:SpatialReferenceType)
+	statement := `
+		MATCH (:Monument {id: {id}})-->(sp:SpatialReference)-->(spt:SpatialReferenceType)
 		WITH sp, spt
 		ORDER BY spt.id ASC, sp.date DESC
 		RETURN
 			sp.x as x,
 			sp.y as y,
 			spt.id as accuracy,
-			sp.date as date`
+			sp.date as date
+	`
 
 	rows, err := db.Query(statement, params)
 	if err != nil {
@@ -375,4 +381,109 @@ func (db *DB) getSiteTopos(params []byte) ([]*siteTopo, error) {
 	}
 
 	return topos, nil
+}
+
+type site struct {
+	ID       int64    `json:"id"`
+	Names    []string `json:"site_names"`
+	ResNames []string `json:"res_names"`
+	Epoch    int64    `json:"epoch_id"`
+	Type     int64    `json:"type_id"`
+}
+
+func (db *DB) getSites(req map[string]interface{}) ([]*site, error) {
+	stmt := `
+    MATCH (s:Monument)<--(k:Knowledge)
+    MATCH (s)-[:has]->(st:MonumentType)
+    MATCH (s)-[:has]->(e:Epoch)
+		%s
+		WITH
+			s.id AS id,
+			e.id AS epoch,
+			st.id AS type
+    RETURN DISTINCT id, epoch, type
+    SKIP {offset} LIMIT {limit}
+	`
+	stmtWithFilters := fmt.Sprintf(stmt, siteFilterString(req))
+	addRegexpFilter(req, []string{"name"})
+	params, err := encoding.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal request: %v", err)
+	}
+
+	rows, err := db.Query(stmtWithFilters, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var sites []*site
+	for rows.Next() {
+		site := new(site)
+		err = rows.Scan(&site.ID, &site.Epoch, &site.Type)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+
+		// Site names and researches names section
+		namesParams, err := encoding.Marshal(map[string]interface{}{"id": site.ID})
+		if err != nil {
+			return nil, err
+		}
+
+		namesRows, err := db.Query(`
+			MATCH (s:Monument {id: {id}})<--(k:Knowledge)
+			MATCH (r:Research)-[:has]->(k)
+			RETURN k.monument_name, r.name
+		`, namesParams)
+		if err != nil {
+			return nil, err
+		}
+
+		for namesRows.Next() {
+			var siteName, resName string
+			err = namesRows.Scan(&siteName, &resName)
+			if err != nil {
+				return nil, err
+			}
+
+			site.Names = append(site.Names, siteName)
+			site.ResNames = append(site.ResNames, resName)
+		}
+		if err = rows.Err(); err != nil {
+			return nil, fmt.Errorf("end of the rows failed: %v", err)
+		}
+		err = namesRows.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		sites = append(sites, site)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
+
+	return sites, nil
+}
+
+func siteFilterString(reqParams map[string]interface{}) string {
+	var filter []string
+	var stmt string
+
+	if reqParams["name"].(string) != "" {
+		filter = append(filter, "k.monument_name =~ {name}")
+	}
+	if reqParams["epoch"].(int64) != 0 {
+		filter = append(filter, "e.id = {epoch}")
+	}
+	if reqParams["type"].(int64) != 0 {
+		log.Printf("type: %#v .", reqParams["type"])
+		filter = append(filter, "st.id = {type}")
+	}
+	if len(filter) > 0 {
+		stmt = "WHERE " + strings.Join(filter, " AND ")
+	}
+
+	return stmt
 }

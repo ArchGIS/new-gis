@@ -18,7 +18,7 @@ type (
 		// Organizations(gin.H) ([]organisationProps, error)
 		// SiteTypes(gin.H) ([]siteTypeProps, error)
 
-		// Sites(gin.H) ([]pluralSite, error)
+		Sites(map[string]interface{}) ([]*site, error)
 		// Researches(gin.H) ([]pluralResearch, error)
 
 		GetSite(map[string]interface{}) (*singleSite, error)
@@ -51,7 +51,7 @@ func InitDB(source string) (*DB, error) {
 	return &DB{db}, nil
 }
 
-// buildRegexpFilter return neo4j regexp filter
+// addRegexpFilter return neo4j regexp filter
 // for case-insensitive text search
 func addRegexpFilter(par map[string]interface{}, keys []string) {
 	for _, v := range keys {
