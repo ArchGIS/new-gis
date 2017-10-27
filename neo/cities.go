@@ -15,7 +15,6 @@ type cityProps struct {
 func (db *DB) Cities(req map[string]interface{}) ([]*cityProps, error) {
 	stmt := fmt.Sprintf(cityStatement, filterCity(req))
 
-	// req["name"] = `(?ui).*` + req["name"].(string) + `+.*`
 	addRegexpFilter(req, "name")
 	params, err := encoding.Marshal(req)
 	if err != nil {
