@@ -405,7 +405,7 @@ func (db *DB) getSites(req map[string]interface{}) ([]*site, error) {
     SKIP {offset} LIMIT {limit}
 	`
 	stmtWithFilters := fmt.Sprintf(stmt, siteFilterString(req))
-	addRegexpFilter(req, []string{"name"})
+	addRegexpFilter(req, "name")
 	params, err := encoding.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal request: %v", err)

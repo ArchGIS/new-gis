@@ -53,7 +53,7 @@ func InitDB(source string) (*DB, error) {
 
 // addRegexpFilter return neo4j regexp filter
 // for case-insensitive text search
-func addRegexpFilter(par map[string]interface{}, keys []string) {
+func addRegexpFilter(par map[string]interface{}, keys ...string) {
 	for _, v := range keys {
 		par[v] = fmt.Sprintf("(?ui).*%s.*$", par[v].(string))
 	}

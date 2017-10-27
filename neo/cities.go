@@ -16,7 +16,7 @@ func (db *DB) Cities(req map[string]interface{}) ([]*cityProps, error) {
 	stmt := fmt.Sprintf(cityStatement, filterCity(req))
 
 	// req["name"] = `(?ui).*` + req["name"].(string) + `+.*`
-	addRegexpFilter(req, []string{"name"})
+	addRegexpFilter(req, "name")
 	params, err := encoding.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("could not encode to gob: %v", err)
