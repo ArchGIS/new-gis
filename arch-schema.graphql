@@ -5,7 +5,6 @@ type Site {
   siteType: SiteType @relation(name: "has", direction: OUT)
   
   knowledges: [Knowledge] @relation(name: "belongsto", direction: IN)
-  cultures: [Culture] @cypher(statement: "MATCH (this)<-[:belongsto]-(:Knowledge)-[:has]->(cul:Culture) RETURN cul")
   spatial: [Spatial] @relation(name: "has", direction: OUT)
 
   researches_count: Int @cypher(statement: "MATCH (this)<-[:belongsto]-(:Knowledge)<-[:has]-(r:Research) RETURN COUNT(r)")
