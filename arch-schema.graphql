@@ -1,0 +1,171 @@
+type Site {
+  id: Int!
+
+  epoch: Epoch @relation(name: "has", direction: OUT)
+  siteType: SiteType @relation(name: "has", direction: OUT)
+  
+  knowledges: [Knowledge] @relation(name: "belongsto", direction: IN)
+  cultures: [Culture] @cypher(statement: "MATCH (this)<-[:belongsto]-(:Knowledge)-[:has]->(cul:Culture) RETURN cul")
+  spatial: [Spatial] @relation(name: "has", direction: OUT)
+
+  researches_count: Int @cypher(statement: "MATCH (this)<-[:belongsto]-(:Knowledge)<-[:has]-(r:Research) RETURN COUNT(r)")
+
+  excavations: [Excavation] @relation(name: "has", direction: OUT)
+  excavations_count: Int @cypher(statement: "MATCH (this)-[:has]->(e:Excavation) RETURN COUNT(e)")
+  excavations_area: Float @cypher(statement: "MATCH (this)-[:has]->(e:Excavation) RETURN SUM(e.area)")
+
+  artifacts_count: Int @cypher(statement: "MATCH (this)-[:has]->(:Excavation)-[:has]->(a:Artifact) RETURN COUNT(a)")
+
+  heritages: [Heritage] @relation(name: "has", direction: IN)
+
+  layers_count: Int @cypher(statement: "MATCH (this)-[:has]->(:Spatial)<-[:has]-(ss:Site) RETURN COUNT(ss) + 1")
+  layers_top: [Site] @cypher(statement: "MATCH (e:Epoch)<--(this)-->(:Spatial)<--(layers:Site)-->(lep:Epoch) WHERE e.id < lep.id RETURN layers")
+  layers_mid: [Site] @cypher(statement: "MATCH (e:Epoch)<--(this)-->(:Spatial)<--(layers:Site)-->(lep:Epoch) WHERE e.id = lep.id RETURN layers")
+  layers_bot: [Site] @cypher(statement: "MATCH (e:Epoch)<--(this)-->(:Spatial)<--(layers:Site)-->(lep:Epoch) WHERE e.id > lep.id RETURN layers")
+}
+
+type Knowledge {
+  id: Int
+  name: String
+  description: String
+
+  excavations_count: Int @cypher(statement: "MATCH (this)-[:EXCAVATED]->(e:Excavation) RETURN COUNT(e)")
+  artifacts_count: Int @cypher(statement: "MATCH (this)-[:found]->(a:Artifact) RETURN COUNT(a)")
+
+  site: Site @relation(name: "belongsto", direction: OUT)
+  research: Research @relation(name: "has", direction: IN)
+  culture: Culture @relation(name: "has", direction: OUT)
+}
+
+type Research {
+  id: Int!
+  name: String
+  year: Int
+  description: String
+
+  type: ResearchType @relation(name: "has", direction: OUT)
+  author: Author @relation(name: "hasauthor", direction: OUT)
+  report: Report @relation(name: "has", direction: OUT)
+  publication: Publication  @relation(name: "has", direction: OUT)
+
+  excavations: [Excavation] @relation(name: "has", direction: OUT)
+  radiocarbons: [Radiocarbon] @relation(name: "has", direction: OUT)
+  coauthors: [Author] @relation(name: "hascoauthor", direction: OUT)
+
+  knowledges: [Knowledge] @relation(name: "has", direction: OUT)
+}
+
+type ResearchType {
+  id: Int!
+  ru_name: String!
+  en_name: String!
+
+  researches: [Research] @relation(name: "has", direction: IN)
+}
+
+type Report {
+  id: Int!
+  year: Int
+  name: String
+  code: String
+  fileid: String
+
+  author: Author @relation(name: "hasauthor", direction: OUT)
+
+  researches: [Research] @relation(name: "has", direction: IN)
+}
+
+type Publication {
+  id: Int!
+  published_at: Int
+  name: String
+  pages: Int
+
+  researches: [Research] @relation(name: "has", direction: IN)
+}
+
+type Radiocarbon {
+  id: Int
+  name: String
+  date: Int
+  s: Int
+  sampleDesc: String
+  bcadSecondTop: Int
+  bcadSecondBot: Int
+
+  researches: [Research] @relation(name: "has", direction: IN)
+}
+
+type Author {
+  id: Int!
+  name: String
+
+  researches: [Research] @relation(name: "hasauthor", direction: IN)
+  reports: [Report] @relation(name: "hasauthor", direction: IN)
+}
+
+type SiteType {
+  id: Int!
+  ru_name: String!
+  en_name: String!
+
+  sites: [Site] @relation(name: "has", direction: IN)
+}
+
+type Epoch {
+  id: Int!
+  ru_name: String!
+  en_name: String!
+
+  sites: [Site] @relation(name: "has", direction: IN)
+}
+
+type Heritage {
+  id: Int!
+  name: String
+
+  sites: [Site] @relation(name: "has", direction: OUT)
+}
+
+type Culture {
+  id: Int!
+  ru_name: String!
+  en_name: String!
+
+  knowledges: [Knowledge] @relation(name: "has", direction: IN)
+}
+
+type Spatial {
+  date: Int
+  x: Float!
+  y: Float!
+
+  type: SpatialType @relation(name: "has", direction: OUT)
+  sites: [Site] @relation(name: "has", direction: IN)
+}
+
+type SpatialType {
+  id: Int!
+  ru_name: String!
+  en_name: String!
+}
+
+type Excavation {
+  id: Int!
+  name: String
+  area: Float
+  boss: String
+
+  sites: [Site] @relation(name: "has", direction: IN)
+  researches: [Research] @relation(name: "has", direction: IN)
+  artifacts: [Artifact] @relation(name: "has", direction: OUT)
+}
+
+type Artifact {
+  id: Int!
+  name: String
+  depth: String
+  excRegion: String
+
+  excavation: Excavation @relation(name: "has", direction: IN)
+}
