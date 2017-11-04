@@ -1,7 +1,9 @@
 package neo
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
+
+	"github.com/johnnadratowski/golang-neo4j-bolt-driver/encoding"
 )
 
 type cultureProps struct {
@@ -9,45 +11,47 @@ type cultureProps struct {
 	Name string `json:"name"`
 }
 
-// func (db *DB) Cultures(req gin.H) ([]cultureProps, error) {
-// 	rows, err := db.QueryNeo(
-// 		fmt.Sprintf(cultureStatement, filterCulture(req)),
-// 		gin.H{
-// 			"language": req["lang"],
-// 			"name":     buildRegexpFilter(req["name"]),
-// 		},
-// 	)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
+func (db *DB) Cultures(req map[string]interface{}) ([]*cultureProps, error) {
+	stmt := fmt.Sprintf(cultureStatement, filterCulture(req))
 
-// 	data, _, err := rows.All()
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	addRegexpFilter(req, "name")
+	params, err := encoding.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("could not encode to gob: %v", err)
+	}
 
-// 	cultures := make([]cultureProps, len(data))
-// 	for i, row := range data {
-// 		cultures[i] = cultureProps{
-// 			ID:   row[0].(int64),
-// 			Name: row[1].(string),
-// 		}
-// 	}
+	rows, err := db.Query(stmt, params)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-// 	return cultures, nil
-// }
+	cultures := make([]*cultureProps, 0)
+	for rows.Next() {
+		cult := new(cultureProps)
+		err = rows.Scan(&cult.ID, &cult.Name)
+		if err != nil {
+			return nil, fmt.Errorf("iterating rows failed: %v", err)
+		}
+		cultures = append(cultures, cult)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("end of the rows failed: %v", err)
+	}
 
-func filterCulture(req gin.H) (filter string) {
+	return cultures, nil
+}
+
+func filterCulture(req map[string]interface{}) (filter string) {
 	if req["name"] != "" {
-		filter = "WHERE tr.name =~ {name}"
+		filter = "WHERE n[$lang + '_name'] =~ $name"
 	}
 
 	return filter
 }
 
 const cultureStatement = `
-	MATCH (n:Culture)-[:translation {lang: {language}}]->(tr:Translate)
+	MATCH (n:Culture)
 	%s
-	RETURN n.id as id, tr.name as name
+	RETURN n.id as id, n[$lang + '_name'] as name
 `

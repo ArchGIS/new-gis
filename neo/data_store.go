@@ -11,9 +11,10 @@ import (
 
 type (
 	DataStore interface {
+		Graphql([]byte) (interface{}, error)
 		// Counts() ([]*nodesCounter, error)
 		Cities(map[string]interface{}) ([]*cityProps, error)
-		// Cultures(gin.H) ([]cultureProps, error)
+		Cultures(map[string]interface{}) ([]*cultureProps, error)
 		// Epochs(gin.H) ([]epochProps, error)
 		// Organizations(gin.H) ([]organisationProps, error)
 		// SiteTypes(gin.H) ([]siteTypeProps, error)
