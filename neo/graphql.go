@@ -18,7 +18,7 @@ func (db *DB) Graphql(req []byte) (interface{}, error) {
 
 func (db *DB) graphql(query []byte) (interface{}, error) {
 	buf := bytes.NewBuffer(query)
-	req, err := http.NewRequest("POST", "http://localhost:7474/graphql/", buf)
+	req, err := http.NewRequest("POST", os.Getenv("NEO4J_GRAPHQL_URL"), buf)
 	if err != nil {
 		return nil, err
 	}
