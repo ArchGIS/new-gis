@@ -7,3 +7,6 @@ logs
 
 # Editors
 .vscode
+
+# Debug files
+debug
