@@ -32,19 +32,19 @@ func main() {
 
 	r.Any("/login", loginHandler)
 
-	apiV1 := r.Group("/api")
+	api := r.Group("/api")
 	// apiV1.Use(middleware.JWT([]byte(os.Getenv(authSecret))))
 	{
-		apiV1.POST("/graphql", routes.Graphql)
+		api.POST("/graphql", routes.Graphql)
 
 		// apiV1.GET("/counts", routes.Count)
-		apiV1.GET("/epochs", routes.Epochs)
-		apiV1.GET("/site_types", routes.SiteTypes)
-		apiV1.GET("/cultures", routes.Cultures)
-		apiV1.GET("/cities", routes.Cities)
-		apiV1.GET("/organizations", routes.Organizations)
+		api.GET("/epochs", routes.Epochs)
+		api.GET("/site_types", routes.SiteTypes)
+		api.GET("/cultures", routes.Cultures)
+		api.GET("/cities", routes.Cities)
+		api.GET("/organizations", routes.Organizations)
 
-		apiV1.GET("/sites", routes.Sites)
+		api.GET("/sites", routes.Sites)
 		// apiV1.GET("/researches", research.Plural)
 		// apiV1.GET("/authors", author.Plural)
 		// apiV1.GET("/reports", report.Plural)
