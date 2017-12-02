@@ -32,7 +32,7 @@ func main() {
 
 	r.Any("/login", loginHandler)
 
-	apiV1 := r.Group("/v1")
+	apiV1 := r.Group("/api")
 	// apiV1.Use(middleware.JWT([]byte(os.Getenv(authSecret))))
 	{
 		apiV1.POST("/graphql", routes.Graphql)
