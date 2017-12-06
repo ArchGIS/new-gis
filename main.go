@@ -25,8 +25,6 @@ func main() {
 
 	r := gin.Default()
 
-	// e.Validator = &CustomValidator{validator: validator.New()}
-
 	r.Use(middle.AddOrigin())
 	r.Use(middle.HandleOptions())
 
