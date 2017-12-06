@@ -4,4 +4,5 @@ killall new-gis
 
 # Start server
 go install
-export GIN_MODE=release new-gis &
+export GIN_MODE=release
+new-gis &
