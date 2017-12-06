@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
@@ -27,6 +28,8 @@ func main() {
 
 	r.Use(middle.AddOrigin())
 	r.Use(middle.HandleOptions())
+
+	r.Use(static.Serve("/", static.LocalFile(os.Getenv("STATIC_PATH"), true)))
 
 	r.Any("/login", loginHandler)
 
