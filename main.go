@@ -46,7 +46,7 @@ func main() {
 
 		api.GET("/sites", routes.Sites)
 		// apiV1.GET("/researches", research.Plural)
-		// apiV1.GET("/authors", author.Plural)
+		// api.GET("/authors", routes.QueryAuthors)
 		// apiV1.GET("/reports", report.Plural)
 		// apiV1.GET("/heritages", heritage.Plural)
 		// apiV1.GET("/excavations", excavation.Plural)
