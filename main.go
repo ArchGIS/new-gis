@@ -54,15 +54,6 @@ func main() {
 		// apiV1.GET("/radiocarbons", radiocarbon.Plural)
 		// apiV1.GET("/artifacts", artifact.Plural)
 		// apiV1.GET("/publications", publication.Plural)
-
-		// apiV1.GET("/site/:id", routes.SingleSite)
-		// apiV1.GET("/site/:id/researches", routes.SiteResearches)
-		// apiV1.GET("/site/:id/reports", routes.SiteReports)
-		// apiV1.GET("/site/:id/excavations", routes.SiteExcavations)
-		// apiV1.GET("/site/:id/artifacts", routes.SiteArtifacts)
-		// apiV1.GET("/site/:id/radiocarbon", routes.SiteRadioCarbon)
-		// apiV1.GET("/site/:id/photos", routes.SitePhotos)
-		// apiV1.GET("/site/:id/topos", routes.SiteTopoplans)
 	}
 
 	r.Run(":8181")
