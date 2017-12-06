@@ -3,7 +3,6 @@ package routes
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,169 +41,169 @@ func Sites(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"sites": sites})
 }
 
-type siteInfoRequest struct {
-	Lang string `form:"lang" binding:"eq=en|eq=ru"`
-}
+// type siteInfoRequest struct {
+// 	Lang string `form:"lang" binding:"eq=en|eq=ru"`
+// }
 
 // SingleSite get general info about single archaelogical site
-func SingleSite(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		log.Panicf("could not convert id to int: %v", err)
-	}
+// func SingleSite(c *gin.Context) {
+// 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusBadRequest)
+// 		log.Panicf("could not convert id to int: %v", err)
+// 	}
 
-	req := siteInfoRequest{Lang: "en"}
-	if err := c.BindQuery(&req); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		log.Panicf("could not bind query params: %v", err)
-	}
+// 	req := siteInfoRequest{Lang: "en"}
+// 	if err := c.BindQuery(&req); err != nil {
+// 		c.AbortWithStatus(http.StatusBadRequest)
+// 		log.Panicf("could not bind query params: %v", err)
+// 	}
 
-	site, err := db.GetSite(map[string]interface{}{
-		"id":   id,
-		"lang": req.Lang,
-	})
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		log.Panicf("error: %v", err)
-	}
+// 	site, err := db.GetSite(map[string]interface{}{
+// 		"id":   id,
+// 		"lang": req.Lang,
+// 	})
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusInternalServerError)
+// 		log.Panicf("error: %v", err)
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"site": site})
-}
+// 	c.JSON(http.StatusOK, gin.H{"site": site})
+// }
 
-// SiteResearches get researches related to site
-func SiteResearches(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		log.Panicf("could not convert id to int: %v", err)
-	}
+// // SiteResearches get researches related to site
+// func SiteResearches(c *gin.Context) {
+// 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusBadRequest)
+// 		log.Panicf("could not convert id to int: %v", err)
+// 	}
 
-	req := siteInfoRequest{Lang: "en"}
-	if err := c.BindQuery(&req); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		log.Panicf("could not bind query params: %v", err)
-	}
+// 	req := siteInfoRequest{Lang: "en"}
+// 	if err := c.BindQuery(&req); err != nil {
+// 		c.AbortWithStatus(http.StatusBadRequest)
+// 		log.Panicf("could not bind query params: %v", err)
+// 	}
 
-	res, err := db.QuerySiteResearches(map[string]interface{}{
-		"id":   id,
-		"lang": req.Lang,
-	})
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		log.Panicf("query failed: %v", err)
-	}
+// 	res, err := db.QuerySiteResearches(map[string]interface{}{
+// 		"id":   id,
+// 		"lang": req.Lang,
+// 	})
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusInternalServerError)
+// 		log.Panicf("query failed: %v", err)
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"site_researches": res})
-}
+// 	c.JSON(http.StatusOK, gin.H{"site_researches": res})
+// }
 
-// SiteReports get reports related to site
-func SiteReports(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		log.Panicf("could not convert id to int: %v", err)
-	}
+// // SiteReports get reports related to site
+// func SiteReports(c *gin.Context) {
+// 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusBadRequest)
+// 		log.Panicf("could not convert id to int: %v", err)
+// 	}
 
-	reports, err := db.QuerySiteReports(map[string]interface{}{"id": id})
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		log.Panicf("query failed: %v", err)
-	}
+// 	reports, err := db.QuerySiteReports(map[string]interface{}{"id": id})
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusInternalServerError)
+// 		log.Panicf("query failed: %v", err)
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"site_reports": reports})
-}
+// 	c.JSON(http.StatusOK, gin.H{"site_reports": reports})
+// }
 
-// SiteExcavations get excavations related to site
-func SiteExcavations(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		log.Panicf("could not convert id to int: %v", err)
-	}
+// // SiteExcavations get excavations related to site
+// func SiteExcavations(c *gin.Context) {
+// 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusBadRequest)
+// 		log.Panicf("could not convert id to int: %v", err)
+// 	}
 
-	excavations, err := db.QuerySiteExcavations(map[string]interface{}{"id": id})
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		log.Panicf("query failed: %v", err)
-	}
+// 	excavations, err := db.QuerySiteExcavations(map[string]interface{}{"id": id})
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusInternalServerError)
+// 		log.Panicf("query failed: %v", err)
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"site_excavations": excavations})
-}
+// 	c.JSON(http.StatusOK, gin.H{"site_excavations": excavations})
+// }
 
-// SiteArtifacts get artifacts related to site
-func SiteArtifacts(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		log.Panicf("could not convert id to int: %v", err)
-	}
+// // SiteArtifacts get artifacts related to site
+// func SiteArtifacts(c *gin.Context) {
+// 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusBadRequest)
+// 		log.Panicf("could not convert id to int: %v", err)
+// 	}
 
-	artifacts, err := db.QuerySiteArtifacts(map[string]interface{}{"id": id})
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		log.Panicf("query failed: %v", err)
-	}
+// 	artifacts, err := db.QuerySiteArtifacts(map[string]interface{}{"id": id})
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusInternalServerError)
+// 		log.Panicf("query failed: %v", err)
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"site_artifacts": artifacts})
-}
+// 	c.JSON(http.StatusOK, gin.H{"site_artifacts": artifacts})
+// }
 
-// SiteRadioCarbon get radiocarbons related to site
-func SiteRadioCarbon(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		log.Panicf("could not convert id to int: %v", err)
-	}
+// // SiteRadioCarbon get radiocarbons related to site
+// func SiteRadioCarbon(c *gin.Context) {
+// 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusBadRequest)
+// 		log.Panicf("could not convert id to int: %v", err)
+// 	}
 
-	rc, err := db.QuerySiteRadioCarbon(map[string]interface{}{"id": id})
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		log.Panicf("query failed: %v", err)
-	}
+// 	rc, err := db.QuerySiteRadioCarbon(map[string]interface{}{"id": id})
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusInternalServerError)
+// 		log.Panicf("query failed: %v", err)
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"site_carbon": rc})
-}
+// 	c.JSON(http.StatusOK, gin.H{"site_carbon": rc})
+// }
 
-// SitePhotos get photos related to site
-func SitePhotos(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		log.Panicf("could not convert id to int: %v", err)
-	}
+// // SitePhotos get photos related to site
+// func SitePhotos(c *gin.Context) {
+// 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusBadRequest)
+// 		log.Panicf("could not convert id to int: %v", err)
+// 	}
 
-	req := siteInfoRequest{Lang: "en"}
-	if err := c.BindQuery(&req); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		log.Panicf("could not bind query params: %v", err)
-	}
+// 	req := siteInfoRequest{Lang: "en"}
+// 	if err := c.BindQuery(&req); err != nil {
+// 		c.AbortWithStatus(http.StatusBadRequest)
+// 		log.Panicf("could not bind query params: %v", err)
+// 	}
 
-	photos, err := db.QuerySitePhotos(map[string]interface{}{
-		"id":   id,
-		"lang": req.Lang,
-	})
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		log.Panicf("query failed: %v", err)
-	}
+// 	photos, err := db.QuerySitePhotos(map[string]interface{}{
+// 		"id":   id,
+// 		"lang": req.Lang,
+// 	})
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusInternalServerError)
+// 		log.Panicf("query failed: %v", err)
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"site_photos": photos})
-}
+// 	c.JSON(http.StatusOK, gin.H{"site_photos": photos})
+// }
 
-// SiteTopoplans get topoplan photos related to site
-func SiteTopoplans(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		log.Panicf("could not convert id to int: %v", err)
-	}
+// // SiteTopoplans get topoplan photos related to site
+// func SiteTopoplans(c *gin.Context) {
+// 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusBadRequest)
+// 		log.Panicf("could not convert id to int: %v", err)
+// 	}
 
-	topos, err := db.QuerySiteTopoplans(map[string]interface{}{"id": id})
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		log.Panicf("query failed: %v", err)
-	}
+// 	topos, err := db.QuerySiteTopoplans(map[string]interface{}{"id": id})
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusInternalServerError)
+// 		log.Panicf("query failed: %v", err)
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"site_topos": topos})
-}
+// 	c.JSON(http.StatusOK, gin.H{"site_topos": topos})
+// }

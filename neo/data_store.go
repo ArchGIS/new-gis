@@ -12,6 +12,8 @@ import (
 type (
 	DataStore interface {
 		Graphql([]byte) (interface{}, error)
+
+		Authors(map[string]interface{}) (interface{}, error)
 		// Counts() ([]*nodesCounter, error)
 		Cities(map[string]interface{}) ([]*cityProps, error)
 		Cultures(map[string]interface{}) ([]*cultureProps, error)
@@ -22,14 +24,14 @@ type (
 		Sites(map[string]interface{}) ([]*site, error)
 		// Researches(gin.H) ([]pluralResearch, error)
 
-		GetSite(map[string]interface{}) (*singleSite, error)
-		QuerySiteResearches(map[string]interface{}) ([]*siteResearch, error)
-		QuerySiteReports(map[string]interface{}) ([]*siteReport, error)
-		QuerySiteExcavations(map[string]interface{}) ([]*siteExcavation, error)
-		QuerySiteArtifacts(map[string]interface{}) ([]*siteArtifact, error)
-		QuerySiteRadioCarbon(map[string]interface{}) ([]*siteCarbon, error)
-		QuerySitePhotos(map[string]interface{}) ([]*sitePhoto, error)
-		QuerySiteTopoplans(map[string]interface{}) ([]*siteTopo, error)
+		// GetSite(map[string]interface{}) (*singleSite, error)
+		// QuerySiteResearches(map[string]interface{}) ([]*siteResearch, error)
+		// QuerySiteReports(map[string]interface{}) ([]*siteReport, error)
+		// QuerySiteExcavations(map[string]interface{}) ([]*siteExcavation, error)
+		// QuerySiteArtifacts(map[string]interface{}) ([]*siteArtifact, error)
+		// QuerySiteRadioCarbon(map[string]interface{}) ([]*siteCarbon, error)
+		// QuerySitePhotos(map[string]interface{}) ([]*sitePhoto, error)
+		// QuerySiteTopoplans(map[string]interface{}) ([]*siteTopo, error)
 	}
 
 	DB struct {
