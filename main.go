@@ -2,7 +2,9 @@ package main
 
 import (
 	"os"
+	"time"
 
+	"github.com/appleboy/gin-jwt"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -31,11 +33,40 @@ func main() {
 
 	r.Use(static.Serve("/", static.LocalFile(os.Getenv("STATIC_PATH"), true)))
 
-	r.Any("/login", loginHandler)
+	authMiddleware := &jwt.GinJWTMiddleware{
+		Realm:      "test zone",
+		Key:        []byte(os.Getenv("AUTH_SECRET")),
+		Timeout:    time.Hour * 24 * 90,
+		MaxRefresh: time.Hour * 24 * 90,
+		Authenticator: func(userId string, password string, c *gin.Context) (string, bool) {
+			if userId == "admin" && password == "qwerty" {
+				return userId, true
+			}
+
+			return userId, false
+		},
+		Authorizator: func(userId string, c *gin.Context) bool {
+			if userId == "admin" {
+				return true
+			}
+
+			return false
+		},
+		Unauthorized: func(c *gin.Context, code int, message string) {
+			c.JSON(code, gin.H{
+				"code":    code,
+				"message": message,
+			})
+		},
+	}
+
+	r.POST("/login", authMiddleware.LoginHandler)
 
 	api := r.Group("/api")
-	// apiV1.Use(middleware.JWT([]byte(os.Getenv(authSecret))))
+	api.Use(authMiddleware.MiddlewareFunc())
 	{
+		api.GET("/refresh_token", authMiddleware.RefreshHandler)
+
 		api.POST("/graphql", routes.Graphql)
 
 		// apiV1.GET("/counts", routes.Count)
