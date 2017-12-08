@@ -60,7 +60,8 @@ func main() {
 		},
 	}
 
-	r.Any("/login", authMiddleware.LoginHandler)
+	r.OPTIONS("/login", func(*gin.Context) {})
+	r.POST("/login", authMiddleware.LoginHandler)
 
 	api := r.Group("/api")
 	api.Use(authMiddleware.MiddlewareFunc())
