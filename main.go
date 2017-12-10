@@ -80,14 +80,6 @@ func main() {
 		api.GET("/organizations", routes.Organizations)
 
 		api.GET("/sites", routes.Sites)
-		// apiV1.GET("/researches", research.Plural)
-		// api.GET("/authors", routes.QueryAuthors)
-		// apiV1.GET("/reports", report.Plural)
-		// apiV1.GET("/heritages", heritage.Plural)
-		// apiV1.GET("/excavations", excavation.Plural)
-		// apiV1.GET("/radiocarbons", radiocarbon.Plural)
-		// apiV1.GET("/artifacts", artifact.Plural)
-		// apiV1.GET("/publications", publication.Plural)
 	}
 
 	r.Run(":8181")
