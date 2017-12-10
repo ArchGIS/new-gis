@@ -28,7 +28,6 @@ func main() {
 
 	r := gin.Default()
 
-	r.Use(middle.AddOrigin())
 	r.Use(middle.HandleOptions())
 
 	r.Use(static.Serve("/", static.LocalFile(os.Getenv("STATIC_PATH"), true)))
