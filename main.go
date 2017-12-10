@@ -62,6 +62,8 @@ func main() {
 
 	r.OPTIONS("/login", func(*gin.Context) {})
 	r.POST("/login", authMiddleware.LoginHandler)
+	r.OPTIONS("/main", func(c *gin.Context) {})
+	r.GET("/main", func(c *gin.Context) {})
 
 	api := r.Group("/api")
 	api.Use(authMiddleware.MiddlewareFunc())
