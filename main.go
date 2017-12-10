@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"time"
 
@@ -61,8 +62,12 @@ func main() {
 
 	r.OPTIONS("/login", func(*gin.Context) {})
 	r.POST("/login", authMiddleware.LoginHandler)
+
 	r.OPTIONS("/main", func(c *gin.Context) {})
-	r.GET("/main", func(c *gin.Context) {})
+	r.LoadHTMLGlob("templates/*.tmpl")
+	r.GET("/main", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "udmurt-lang.tmpl", gin.H{})
+	})
 
 	api := r.Group("/api")
 	api.Use(authMiddleware.MiddlewareFunc())
