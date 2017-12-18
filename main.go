@@ -86,5 +86,5 @@ func main() {
 		api.GET("/sites", routes.Sites)
 	}
 
-	r.Run(":8181")
+	r.Run(":7000")
 }
