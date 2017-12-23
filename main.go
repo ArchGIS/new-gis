@@ -77,6 +77,7 @@ func main() {
 		api.GET("/organizations", routes.Organizations)
 
 		api.GET("/sites", routes.Sites)
+		api.GET("/authors", routes.QueryAuthors)
 	}
 
 	r.Run(":7000")

@@ -12,7 +12,15 @@ type (
 	authorsProps struct {
 		ID       uint64   `json:"id"`
 		Name     string   `json:"author_name"`
-		ResNames []string `json:"research_names"`
+		ResNames []string `json:"researches_names"`
+	}
+
+	neoResponse struct {
+		Results []struct {
+			Data []struct {
+				Row *json.RawMessage
+			}
+		}
 	}
 
 	neoQuery struct {
@@ -25,15 +33,15 @@ type (
 	}
 )
 
+const authorsCypherQuery = "MATCH (a:Author)<-[:hasauthor]-(r:Research) " +
+	"%s " +
+	"WITH a.id as id, a.name as author_name, collect(r.name) as research_names " +
+	"RETURN id, author_name, research_names " +
+	"SKIP {offset} LIMIT {limit} "
+
+// Authors returning data from database about authors
 func (db *DB) Authors(params map[string]interface{}) (interface{}, error) {
-	stmt := fmt.Sprintf(
-		"MATCH (a:Author)<-[:hasauthor]-(r:Research) "+
-			"%s "+
-			"WITH a.id as id, a.name as author_name, collect(r.name) as research_names "+
-			"RETURN id, author_name, research_names "+
-			"SKIP {offset} LIMIT {limit} ",
-		filterAuthors(params),
-	)
+	stmt := fmt.Sprintf(authorsCypherQuery, filterAuthors(params))
 	reqB, err := json.Marshal(
 		neoQuery{
 			Statements: []Statement{
@@ -59,14 +67,13 @@ func (db *DB) Authors(params map[string]interface{}) (interface{}, error) {
 	}
 	defer resp.Body.Close()
 
-	var result interface{}
+	var result neoResponse
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
 		return nil, err
 	}
-	// for i := range result.results
 
-	return result.(map[string]interface{})["results"], nil
+	return result.buildAuthorsResponse()
 }
 
 func filterAuthors(req map[string]interface{}) (filter string) {
@@ -75,4 +82,24 @@ func filterAuthors(req map[string]interface{}) (filter string) {
 	}
 
 	return filter
+}
+
+func (resp *neoResponse) buildAuthorsResponse() ([]authorsProps, error) {
+	data := resp.Results[0].Data
+	var authors []authorsProps
+
+	for _, row := range data {
+		var author authorsProps
+		if err := json.Unmarshal(*row.Row, &author); err != nil {
+			return nil, err
+		}
+		authors = append(authors, author)
+	}
+
+	return authors, nil
+}
+
+func (row *authorsProps) UnmarshalJSON(buf []byte) error {
+	tmp := []interface{}{&row.ID, &row.Name, &row.ResNames}
+	return json.Unmarshal(buf, &tmp)
 }
