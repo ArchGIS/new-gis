@@ -25,8 +25,6 @@ func QueryAuthors(c *gin.Context) {
 		return
 	}
 
-	log.Printf("%v", req)
-
 	authors, err := db.Authors(map[string]interface{}{
 		"name":   req.Name,
 		"offset": req.Offset,
