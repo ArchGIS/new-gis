@@ -31,7 +31,7 @@ func (db *DB) Epochs(params map[string]interface{}) ([]epochProps, error) {
 		return nil, err
 	}
 
-	return result.buildEpochsResponse()
+	return result.Epochs()
 }
 
 const (
@@ -41,7 +41,7 @@ const (
 	`
 )
 
-func (resp *neoResponse) buildEpochsResponse() ([]epochProps, error) {
+func (resp *neoResponse) Epochs() ([]epochProps, error) {
 	data := resp.Results[0].Data
 	var epochs []epochProps
 
