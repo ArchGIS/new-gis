@@ -18,7 +18,7 @@ type (
 		Cities(map[string]interface{}) ([]*cityProps, error)
 		Cultures(map[string]interface{}) ([]*cultureProps, error)
 		Epochs(map[string]interface{}) ([]epochProps, error)
-		// Organizations(gin.H) ([]organisationProps, error)
+		Organizations(map[string]interface{}) ([]*organisationProps, error)
 		SiteTypes(map[string]interface{}) ([]siteTypeProps, error)
 
 		Sites(map[string]interface{}) ([]*site, error)
