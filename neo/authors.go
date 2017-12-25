@@ -1,11 +1,8 @@
 package neo
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"os"
 )
 
 type (
@@ -42,26 +39,17 @@ const authorsCypherQuery = "MATCH (a:Author)<-[:hasauthor]-(r:Research) " +
 // Authors returning data from database about authors
 func (db *DB) Authors(params map[string]interface{}) (interface{}, error) {
 	stmt := fmt.Sprintf(authorsCypherQuery, filterAuthors(params))
-	reqB, err := json.Marshal(
-		neoQuery{
-			Statements: []Statement{
-				Statement{Query: stmt, Params: params},
-			},
-		},
-	)
+	buf, err := buildSingleStatementQuery(stmt, params)
 	if err != nil {
 		return nil, err
 	}
 
-	buf := bytes.NewBuffer(reqB)
-	req, err := http.NewRequest("POST", os.Getenv("NEO4J_REST_TR_COMMIT"), buf)
+	req, err := buildNeoRequest(buf)
 	if err != nil {
 		return nil, err
 	}
-	req.SetBasicAuth(os.Getenv("NEO4J_USER"), os.Getenv("NEO4J_PASSWORD"))
 
-	client := http.Client{}
-	resp, err := client.Do(req)
+	resp, err := neoClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
