@@ -165,6 +165,7 @@ type Artifact {
   name: String
   depth: String
   excRegion: String
+  year: Int
 
   excavation: Excavation @relation(name: "has", direction: IN)
 }
