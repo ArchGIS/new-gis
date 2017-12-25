@@ -23,15 +23,6 @@ type (
 
 		Sites(map[string]interface{}) ([]*site, error)
 		// Researches(gin.H) ([]pluralResearch, error)
-
-		// GetSite(map[string]interface{}) (*singleSite, error)
-		// QuerySiteResearches(map[string]interface{}) ([]*siteResearch, error)
-		// QuerySiteReports(map[string]interface{}) ([]*siteReport, error)
-		// QuerySiteExcavations(map[string]interface{}) ([]*siteExcavation, error)
-		// QuerySiteArtifacts(map[string]interface{}) ([]*siteArtifact, error)
-		// QuerySiteRadioCarbon(map[string]interface{}) ([]*siteCarbon, error)
-		// QuerySitePhotos(map[string]interface{}) ([]*sitePhoto, error)
-		// QuerySiteTopoplans(map[string]interface{}) ([]*siteTopo, error)
 	}
 
 	DB struct {
