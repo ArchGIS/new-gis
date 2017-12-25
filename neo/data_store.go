@@ -19,7 +19,7 @@ type (
 		Cultures(map[string]interface{}) ([]*cultureProps, error)
 		Epochs(map[string]interface{}) ([]epochProps, error)
 		// Organizations(gin.H) ([]organisationProps, error)
-		// SiteTypes(gin.H) ([]siteTypeProps, error)
+		SiteTypes(map[string]interface{}) ([]siteTypeProps, error)
 
 		Sites(map[string]interface{}) ([]*site, error)
 		// Researches(gin.H) ([]pluralResearch, error)

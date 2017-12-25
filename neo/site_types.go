@@ -1,5 +1,7 @@
 package neo
 
+import "encoding/json"
+
 type (
 	siteTypeProps struct {
 		ID   int64  `json:"id"`
@@ -7,35 +9,55 @@ type (
 	}
 )
 
-// func (db *DB) SiteTypes(req gin.H) ([]siteTypeProps, error) {
-// rows, err := db.QueryNeo(
-// 	siteTypesStatement,
-// 	gin.H{"language": req["lang"]},
-// )
-// if err != nil {
-// 	return nil, err
-// }
-// defer rows.Close()
+func (db *DB) SiteTypes(params map[string]interface{}) ([]siteTypeProps, error) {
+	buf, err := buildSingleStatementQuery(siteTypesStatement, params)
+	if err != nil {
+		return nil, err
+	}
 
-// data, _, err := rows.All()
-// if err != nil {
-// 	return nil, err
-// }
+	req, err := buildNeoRequest(buf)
+	if err != nil {
+		return nil, err
+	}
 
-// sTypes := make([]siteTypeProps, len(data))
-// for i, row := range data {
-// 	sTypes[i] = siteTypeProps{
-// 		ID:   row[0].(int64),
-// 		Name: row[1].(string),
-// 	}
-// }
+	resp, err := neoClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
 
-// return sTypes, nil
-// }
+	var result neoResponse
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result.siteTypes()
+}
 
 const (
 	siteTypesStatement = `
-		MATCH (n:MonumentType)-[:translation {lang: {language}}]->(tr:Translate)
-		RETURN n.id as id, tr.name as name
+		MATCH (n:MonumentType)
+		RETURN n.id as id, n[{lang} + '_name'] as name
 	`
 )
+
+func (resp *neoResponse) siteTypes() ([]siteTypeProps, error) {
+	data := resp.Results[0].Data
+	var types []siteTypeProps
+
+	for _, row := range data {
+		var site siteTypeProps
+		if err := json.Unmarshal(*row.Row, &site); err != nil {
+			return nil, err
+		}
+		types = append(types, site)
+	}
+
+	return types, nil
+}
+
+func (row *siteTypeProps) UnmarshalJSON(buf []byte) error {
+	tmp := []interface{}{&row.ID, &row.Name}
+	return json.Unmarshal(buf, &tmp)
+}

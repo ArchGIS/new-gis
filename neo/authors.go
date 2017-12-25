@@ -44,7 +44,7 @@ func (db *DB) Authors(params map[string]interface{}) ([]authorsProps, error) {
 		return nil, err
 	}
 
-	return result.Authors()
+	return result.authors()
 }
 
 func filterAuthors(req map[string]interface{}) (filter string) {
@@ -55,7 +55,7 @@ func filterAuthors(req map[string]interface{}) (filter string) {
 	return filter
 }
 
-func (resp *neoResponse) Authors() ([]authorsProps, error) {
+func (resp *neoResponse) authors() ([]authorsProps, error) {
 	data := resp.Results[0].Data
 	var authors []authorsProps
 
