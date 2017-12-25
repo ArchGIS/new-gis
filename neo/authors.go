@@ -20,7 +20,7 @@ const authorsCypherQuery = "MATCH (a:Author)<-[:hasauthor]-(r:Research) " +
 	"SKIP {offset} LIMIT {limit} "
 
 // Authors returning data from database about authors
-func (db *DB) Authors(params map[string]interface{}) (interface{}, error) {
+func (db *DB) Authors(params map[string]interface{}) ([]authorsProps, error) {
 	stmt := fmt.Sprintf(authorsCypherQuery, filterAuthors(params))
 	buf, err := buildSingleStatementQuery(stmt, params)
 	if err != nil {

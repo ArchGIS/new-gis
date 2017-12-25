@@ -13,11 +13,11 @@ type (
 	DataStore interface {
 		Graphql([]byte) (interface{}, error)
 
-		Authors(map[string]interface{}) (interface{}, error)
+		Authors(map[string]interface{}) ([]authorsProps, error)
 		// Counts() ([]*nodesCounter, error)
 		Cities(map[string]interface{}) ([]*cityProps, error)
 		Cultures(map[string]interface{}) ([]*cultureProps, error)
-		// Epochs(gin.H) ([]epochProps, error)
+		Epochs(map[string]interface{}) ([]epochProps, error)
 		// Organizations(gin.H) ([]organisationProps, error)
 		// SiteTypes(gin.H) ([]siteTypeProps, error)
 

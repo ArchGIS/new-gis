@@ -4,7 +4,7 @@ import "github.com/ArchGIS/new-gis/neo"
 
 type (
 	request struct {
-		Lang string `query:"lang"`
+		Lang string `form:"lang"`
 	}
 
 	Env struct {
