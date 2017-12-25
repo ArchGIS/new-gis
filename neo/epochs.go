@@ -8,7 +8,6 @@ type epochProps struct {
 }
 
 func (db *DB) Epochs(params map[string]interface{}) ([]epochProps, error) {
-	// stmt := fmt.Sprintf(epochsStatement, filterAuthors(params))
 	buf, err := buildSingleStatementQuery(epochsStatement, params)
 	if err != nil {
 		return nil, err
