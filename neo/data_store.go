@@ -14,7 +14,7 @@ type (
 		Graphql([]byte) (interface{}, error)
 
 		Authors(map[string]interface{}) ([]authorsProps, error)
-		// Counts() ([]*nodesCounter, error)
+		Counts() ([]*nodesCounter, error)
 		Cities(map[string]interface{}) ([]*cityProps, error)
 		Cultures(map[string]interface{}) ([]*cultureProps, error)
 		Epochs(map[string]interface{}) ([]epochProps, error)

@@ -69,7 +69,7 @@ func main() {
 
 		api.POST("/graphql", routes.Graphql)
 
-		// apiV1.GET("/counts", routes.Count)
+		api.GET("/counts", routes.Count)
 		api.GET("/epochs", routes.Epochs)
 		api.GET("/site_types", routes.SiteTypes)
 		api.GET("/cultures", routes.Cultures)
