@@ -11,23 +11,6 @@ type (
 		Name     string   `json:"author_name"`
 		ResNames []string `json:"researches_names"`
 	}
-
-	neoResponse struct {
-		Results []struct {
-			Data []struct {
-				Row *json.RawMessage
-			}
-		}
-	}
-
-	neoQuery struct {
-		Statements []Statement `json:"statements"`
-	}
-
-	Statement struct {
-		Query  string                 `json:"statement"`
-		Params map[string]interface{} `json:"parameters"`
-	}
 )
 
 const authorsCypherQuery = "MATCH (a:Author)<-[:hasauthor]-(r:Research) " +

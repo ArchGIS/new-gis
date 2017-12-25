@@ -17,8 +17,8 @@ func init() {
 func buildSingleStatementQuery(stmt string, params map[string]interface{}) (io.Reader, error) {
 	query, err := json.Marshal(
 		neoQuery{
-			Statements: []Statement{
-				Statement{Query: stmt, Params: params},
+			Statements: []statement{
+				statement{Query: stmt, Params: params},
 			},
 		},
 	)
