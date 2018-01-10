@@ -13,6 +13,8 @@ type (
 	DataStore interface {
 		Graphql([]byte) (interface{}, error)
 
+		RawQuery(string) (interface{}, error)
+
 		Authors(map[string]interface{}) ([]authorsProps, error)
 		Counts() ([]*nodesCounter, error)
 		Cities(map[string]interface{}) ([]*cityProps, error)
