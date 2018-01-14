@@ -13,6 +13,7 @@ import (
 type Parameter struct {
   Name string;
   Value string;
+  Not bool;
 }
 type SearchQuery struct {
   Id  int
@@ -71,8 +72,14 @@ func SendQuery(params []SearchQuery, c *gin.Context) interface{} {
     m := strings.Replace(templates[entity+param.Name].Match + " ", "_ID", count, -1)
     w := strings.Replace(templates[entity+param.Name].Where + " ", "_ID", count, -1)
     w = strings.Replace(w, "_VALUE", param.Value, -1)
+    
+    if param.Not == true {
+      w = "NOT " + w
+    }
+
     Match += m
     Where += w
+    
     if i+1 < len(params[0].Params) {
       Where += " AND "
     }
