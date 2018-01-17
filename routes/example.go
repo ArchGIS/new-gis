@@ -47,54 +47,67 @@ func Example(c *gin.Context) {
 }
 
 func SendQuery(params []SearchQuery, c *gin.Context) interface{} {
-  Match := ""
-  Where := ""
-  Ret := ""  
-  entity := ""
-
   templates := GetTemplates()
+  queryStr := ""
 
-  if params[0].Id == 1 {
-    entity = "site-"
-  }
-  if params[0].Id == 2 {
-    entity = "res-"
-  }
-  if params[0].Id == 3 {
-    entity = "auth-"
-  }
+  for t, query := range params {
 
-  Match = templates[entity+"main"].Match
-  Ret = templates[entity+"main"].Where
-
-  for i, param := range params[0].Params {
-    count := strconv.Itoa(i)
-    m := strings.Replace(templates[entity+param.Name].Match + " ", "_ID", count, -1)
-    w := strings.Replace(templates[entity+param.Name].Where + " ", "_ID", count, -1)
-    w = strings.Replace(w, "_VALUE", param.Value, -1)
-    
-    if param.Not == true {
-      w = "NOT " + w
+    if len(query.Params) == 0 {
+      continue
     }
 
-    Match += m
-    Where += w
-    
-    if i+1 < len(params[0].Params) {
-      Where += " AND "
+    Match := ""
+    Where := ""
+    Ret := ""  
+    entity := ""
+
+    if query.Id == 1 {
+      entity = "site-"
     }
+    if query.Id == 2 {
+      entity = "res-"
+    }
+    if query.Id == 3 {
+      entity = "auth-"
+    }
+
+    Match = templates[entity+"main"].Match
+    Ret = templates[entity+"main"].Where
+
+    for i, param := range query.Params {
+      count := strconv.Itoa(i)
+      m := strings.Replace(templates[entity+param.Name].Match + " ", "_ID", count, -1)
+      w := strings.Replace(templates[entity+param.Name].Where + " ", "_ID", count, -1)
+      w = strings.Replace(w, "_VALUE", param.Value, -1)
+      
+      if param.Not == true {
+        w = "NOT " + w
+      }
+
+      Match += m
+      Where += w
+      
+      if i+1 < len(query.Params) {
+        Where += " AND "
+      }
+    }
+
+    if t != 0 {
+        queryStr += " UNION "
+    }
+    queryStr += Match + " WHERE " + Where + Ret
+    log.Print("QUERY %d: %v", t, queryStr) 
+
   }
 
-  query := Match + " WHERE " + Where + Ret
-  log.Print("QUERY: %v", query) 
-
-  result, err := db.RawQuery(query)
+  results, err := db.RawQuery(queryStr)
   if err != nil {
     log.Panicf("cannot read request body: %v", err)
     c.AbortWithStatus(http.StatusBadRequest)
   }
-  log.Print("RESULT: %v", result) 
-  return result;
+  log.Print("result: %v", results) 
+
+  return results;
 }
 
 func GetTemplates() map[string]QueryTemp {
