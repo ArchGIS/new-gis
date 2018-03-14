@@ -168,4 +168,11 @@ type Artifact {
   year: Int
 
   excavation: Excavation @relation(name: "has", direction: IN)
+  category: ArtifactCategory @relation(name: "has", direction: OUT)
+}
+
+type ArtifactCategory {
+  id: Int!
+  en_name: String!
+  ru_name: String!
 }
