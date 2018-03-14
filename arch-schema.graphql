@@ -169,10 +169,15 @@ type Artifact {
 
   excavation: Excavation @relation(name: "has", direction: IN)
   category: ArtifactCategory @relation(name: "has", direction: OUT)
+  collections: [Collection] @cypher(statement: "MATCH (this)-[:has]->(:StorageInteerval)<-[:has]-(c:Collection) RETURN c")
 }
 
 type ArtifactCategory {
   id: Int!
   en_name: String!
   ru_name: String!
+}
+
+type Collection {
+  name: String!
 }
